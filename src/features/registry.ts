@@ -30,5 +30,6 @@ export const CAMPUS_SCREENS = [
   { name: 'transport', title: '交通' },
   { name: 'promo', title: '建北特約' },
   { name: 'souvenir', title: '校慶紀念品' },
+  { name: 'tickets', title: '建中舞會門票' },
   { name: 'help', title: '選擇障礙小幫手' },
 ] as const;

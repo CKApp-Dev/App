@@ -57,6 +57,7 @@ export const icons = {
   book: Icon.select({ ios: 'book', android: import('@expo/material-symbols/book.xml') }),
   store: Icon.select({ ios: 'storefront', android: import('@expo/material-symbols/store.xml') }),
   bag: Icon.select({ ios: 'bag', android: import('@expo/material-symbols/shopping_bag.xml') }),
+  ticket: Icon.select({ ios: 'ticket', android: import('@expo/material-symbols/confirmation_number.xml') }),
   walk: Icon.select({ ios: 'figure.walk', android: import('@expo/material-symbols/directions_walk.xml') }),
   forkKnife: Icon.select({ ios: 'fork.knife', android: import('@expo/material-symbols/restaurant.xml') }),
   takeout: Icon.select({ ios: 'takeoutbag.and.cup.and.straw', android: import('@expo/material-symbols/fastfood.xml') }),
