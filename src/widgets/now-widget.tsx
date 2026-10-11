@@ -24,6 +24,10 @@ import type { NowWidgetProps } from './now-timeline';
 
 function NowWidgetLayout(props: NowWidgetProps, environment: WidgetEnvironment) {
   'widget';
+  // WidgetKit asks for a placeholder with empty props before reading a timeline.
+  if (!props.title) {
+    props = { eyebrow: 'CK APP', title: '選擇班級', next: '打開 App 選擇班級' };
+  }
   // The 現在 card's colours (theme/brand.ts): CK navy, lifted in dark mode;
   // white, 78% white, and 45% white for the rail ahead of now.
   const navy = environment.colorScheme === 'dark' ? '#17377F' : '#03328D';

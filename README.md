@@ -24,7 +24,7 @@ CK APP 是建中第 77 屆學生彭可翰和楊晨諺於 2024 年開發的校園
 | ------------- | ---------------------------------------------------------------------------------------------------- |
 | 首次開啟      | 「你是哪一班？」：依年級選班級，或先看看之後再選                                                     |
 | 設定          | 班級、「今天」顯示項目、行事曆年級篩選、重設本機資料、關於                                           |
-| 小工具（iOS） | 「現在」小工具：主畫面小／中尺寸（鐘聲軌、倒數、接下來的課）與鎖定畫面；須以 `ENABLE_WIDGETS=1` 建置 |
+| 小工具（iOS） | 「現在」小工具：主畫面小／中尺寸（鐘聲軌、倒數、接下來的課）與鎖定畫面；iOS 建置預設包含 |
 
 ## 架構與資料
 
@@ -116,11 +116,25 @@ export PATH="$(ruby -r rubygems -e 'puts Gem.user_dir')/bin:$PATH"
 
 `yarn start` 只啟動 Metro，不會編譯原生模組。新增原生依賴後須重新編譯 App；JavaScript 重新載入無法替已安裝的 App 加入缺少的原生模組。參考 [Expo 本機建置流程](https://docs.expo.dev/guides/local-app-development/)。
 
+### iPhone 小工具
+
+iOS 建置預設包含「現在」小工具。若舊建置的加入小工具列表沒有 CK APP，請重新產生 iOS 專案並安裝原生建置：
+
+```bash
+npx expo prebuild --platform ios
+yarn ios --device
+```
+
+安裝後先開啟 CK APP 一次，再長按主畫面，選 **編輯 → 加入小工具**，搜尋 **CK APP**。支援主畫面小／中尺寸，以及鎖定畫面的單行／矩形尺寸。Expo Go 無法安裝此擴充，JavaScript 重新載入也無法替既有建置加入小工具。參考 [Expo Widgets 設定](https://docs.expo.dev/versions/v57.0.0/sdk/widgets/)。
+
+實機建置可將 `IOS_TEAM_ID` 設為 Apple Developer 團隊，或在 Xcode 為 **CKAPP** 與 **ExpoWidgetsTarget** 選擇相同團隊。兩個目標都使用 App Group `group.org.capacitor.quasar.ckapp`。只有本機簽署設定不支援 App Groups 時才設 `ENABLE_WIDGETS=0`；該建置不會包含 iPhone 小工具。
+
 | 環境變數                           | 用途                                                                                                                                      |
 | ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
 | `METRO_API_USER`、`METRO_API_PASS` | 北捷 API 帳密，向維護者索取                                                                                                               |
 | `GOOGLE_MAPS_API_KEY`              | Android Maps SDK 金鑰；未設定時顯示提示，仍可使用餐廳／站點列表，iOS 使用 Apple Maps                                                      |
-| `ENABLE_WIDGETS`                   | 選填；設為 `1` 時在 prebuild 加入 iOS「現在」小工具（擴充目標與 App Group）。商店版本須先在 Apple Developer 註冊 App Group 與擴充的描述檔 |
+| `ENABLE_WIDGETS`                   | iOS 預設包含小工具；設為 `0` 可在本機停用。實機建置需要 App Group，以及主程式和擴充各自的描述檔 |
+| `IOS_TEAM_ID`                      | 選填；本機實機建置使用的 Apple Developer 團隊，會套用到主程式與小工具；CI 使用發佈團隊 |
 | `APP_VERSION`                      | 選填；覆寫 `package.json` 版本，CI 由 tag／套件版本設定                                                                                   |
 | `BUILD_NUMBER`                     | 選填；本機預設 `1`，CI 使用 workflow run number                                                                                           |
 
@@ -143,6 +157,8 @@ Jest 檢查日期、課表、「現在」卡片狀態、行事曆、營業時間
 Tag 版本必須是數字型 `major.minor.patch`；手動執行採 `package.json` 版本。`BUILD_NUMBER` 使用各 workflow 的 run number，維護者須確認高於既有商店 build。App 身分維持 `org.capacitor.quasar.ckapp`。
 
 Android 由 Gradle 使用既有 `PLAY_SIGNING_KEY`、`PLAY_SIGNING_KEY_ALIAS`、`PLAY_SIGNING_KEY_STORE_PASSWORD`、`PLAY_SIGNING_KEY_PASSWORD` 簽署 APK／AAB；`SERVICE_ACCOUNT_JSON` 負責 Play 上傳。iOS 使用 `BUILD_CERTIFICATE_BASE64`、`P12_PASSWORD`、`BUILD_PROVISION_PROFILE_BASE64`、`KEYCHAIN_PASSWORD`，保留 `Github Actions` profile 與 team `FJX3SGU9AL`。TestFlight 使用既有 `APPSTORE_API_PRIVATE_KEY` secret、`APPSTORE_ISSUER_ID` 與 `APPSTORE_API_KEY_ID` variables。建置也需要前述 API 設定。原生簽署流程可參考 [Expo release build 文件](https://docs.expo.dev/guides/local-app-production/)。
+
+iOS 發佈另需 `BUILD_WIDGET_PROVISION_PROFILE_BASE64`，內容為 `org.capacitor.quasar.ckapp.ExpoWidgetsTarget` 的 App Store distribution 描述檔。先註冊 `group.org.capacitor.quasar.ckapp` 並在主程式與小工具的 App ID 啟用，再重新產生兩份描述檔。既有主程式描述檔 secret 也須更新，並保留 production Push Notifications。CI 會驗證兩份描述檔、分別簽署兩個目標，將小工具隨 App 一起匯出。
 
 ## 發布更新前必須完成的項目
 

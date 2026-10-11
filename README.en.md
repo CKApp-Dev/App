@@ -24,7 +24,7 @@ There are five fixed tabs:
 | ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------- |
 | First launch | 你是哪一班？ ("Which class are you in?"): pick a class by grade, or look around first                                                              |
 | Settings     | Class, what Today shows, the calendar's grade filter, local data reset, and About                                                                  |
-| Widget (iOS) | The 現在 widget: small and medium Home Screen sizes (bell rail, countdown, the rest of the day) and the Lock Screen; built with `ENABLE_WIDGETS=1` |
+| Widget (iOS) | The 現在 widget: small and medium Home Screen sizes (bell rail, countdown, the rest of the day) and the Lock Screen; included in iOS builds |
 
 ## Architecture and data
 
@@ -116,11 +116,25 @@ If CocoaPods is not installed, follow [CocoaPods setup](https://guides.cocoapods
 
 `yarn start` starts Metro and does not compile native modules. After adding a native dependency, build the app again; an installed binary that lacks that module cannot gain it through JavaScript reloads. See [Expo's local build workflow](https://docs.expo.dev/guides/local-app-development/).
 
+### iPhone widget
+
+iOS builds include the 現在 widget by default. If an older build does not show CK APP in the widget gallery, regenerate the iOS project and reinstall a native build:
+
+```bash
+npx expo prebuild --platform ios
+yarn ios --device
+```
+
+Open CK APP once after installing, then long-press the Home Screen, choose **Edit → Add Widget**, and search for **CK APP**. The widget supports small and medium Home Screen sizes, plus inline and rectangular Lock Screen sizes. Expo Go cannot install this extension; a JavaScript reload cannot add it to an existing binary. See [Expo Widgets configuration](https://docs.expo.dev/versions/v57.0.0/sdk/widgets/).
+
+For a physical iPhone, set `IOS_TEAM_ID` to your Apple Developer team or select the same team for **CKAPP** and **ExpoWidgetsTarget** in Xcode. Both targets use the App Group `group.org.capacitor.quasar.ckapp`. Set `ENABLE_WIDGETS=0` only for local builds whose signing setup cannot use App Groups; those builds have no iPhone widget.
+
 | Environment variable               | Purpose                                                                                                                                                                                                  |
 | ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `METRO_API_USER`, `METRO_API_PASS` | Taipei Metro API credentials; ask a maintainer                                                                                                                                                           |
 | `GOOGLE_MAPS_API_KEY`              | Maps SDK for Android key; without it the app shows a notice while restaurant/station lists remain available. iOS uses Apple Maps                                                                         |
-| `ENABLE_WIDGETS`                   | Optional; `1` adds the iOS 現在 widget (an extension target and an App Group) at prebuild. Store builds first need the App Group and the extension's provisioning profile in the Apple Developer account |
+| `ENABLE_WIDGETS`                   | iOS widgets are enabled by default; `0` opts out locally. Requires an App Group and separate app/extension provisioning profiles for device builds |
+| `IOS_TEAM_ID`                      | Optional Apple Developer team for both iOS targets in local device builds; CI uses the release team |
 | `APP_VERSION`                      | Optional override of the package version; CI derives it from the tag/package                                                                                                                             |
 | `BUILD_NUMBER`                     | Optional local override, default `1`; CI uses the workflow run number                                                                                                                                    |
 
@@ -143,6 +157,8 @@ The [Android workflow](.github/workflows/build_android.yml) and [iOS workflow](.
 Tag versions must be numeric `major.minor.patch`. Manual runs use `package.json`. Each workflow's run number becomes `BUILD_NUMBER`; maintainers must ensure it exceeds the existing store build. The app identity remains `org.capacitor.quasar.ckapp`.
 
 Gradle signs APK/AAB files with the existing `PLAY_SIGNING_KEY`, `PLAY_SIGNING_KEY_ALIAS`, `PLAY_SIGNING_KEY_STORE_PASSWORD`, and `PLAY_SIGNING_KEY_PASSWORD` secrets. `SERVICE_ACCOUNT_JSON` uploads to Play. iOS uses `BUILD_CERTIFICATE_BASE64`, `P12_PASSWORD`, `BUILD_PROVISION_PROFILE_BASE64`, and `KEYCHAIN_PASSWORD`, retaining profile `Github Actions` and team `FJX3SGU9AL`. TestFlight retains secret `APPSTORE_API_PRIVATE_KEY` and variables `APPSTORE_ISSUER_ID` / `APPSTORE_API_KEY_ID`. Builds also require the API configuration above. See [Expo release builds](https://docs.expo.dev/guides/local-app-production/) for native signing guidance.
+
+The iOS release also requires `BUILD_WIDGET_PROVISION_PROFILE_BASE64`, an App Store distribution profile for `org.capacitor.quasar.ckapp.ExpoWidgetsTarget`. Register `group.org.capacitor.quasar.ckapp` and enable it on both the app and widget identifiers, then regenerate both profiles. Update the existing app profile secret as well; it must retain production Push Notifications. CI validates both profiles, signs both targets, and exports the embedded widget with the app.
 
 ## Required before shipping updates
 

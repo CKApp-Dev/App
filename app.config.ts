@@ -15,11 +15,11 @@ const version = process.env.APP_VERSION || pkg.version;
 const buildNumber = process.env.BUILD_NUMBER || '1';
 
 // The 現在 widget (src/widgets/) adds a widget extension target and an App
-// Group (group.<bundle id>) to the iOS app. Store builds can only sign them
-// once both are registered in the Apple Developer account with provisioning
-// profiles for the extension, so they are opt-in: ENABLE_WIDGETS=1 at
-// prebuild. See docs/design/native-ui.md, "Widgets".
-const widgets = process.env.ENABLE_WIDGETS === '1';
+// Group (group.<bundle id>) to the iOS app. Include it in normal builds so
+// iPhone users can find CK APP in the widget gallery. ENABLE_WIDGETS=0 is a
+// local opt-out for signing setups without App Groups; release CI signs both
+// the app and extension. See docs/design/native-ui.md, "Widgets".
+const widgets = process.env.ENABLE_WIDGETS !== '0';
 
 // Local device builds use APNs sandbox; the signed release workflow sets
 // production to match its Apple Distribution provisioning profile.
@@ -47,6 +47,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   userInterfaceStyle: 'automatic',
   ios: {
     bundleIdentifier: APP_ID,
+    appleTeamId: process.env.IOS_TEAM_ID || undefined,
     buildNumber,
     // The shipped app supports iPad (TARGETED_DEVICE_FAMILY 1,2). App Store
     // Connect rejects an update that drops a device family, so keep it.
@@ -95,8 +96,10 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
                   name: 'NowWidget',
                   displayName: '現在',
                   description: '現在這一節、下課倒數和接下來的課。',
-                  supportedFamilies: ['systemSmall', 'systemMedium', 'accessoryRectangular', 'accessoryInline'],
-                  contentMarginsDisabled: false,
+                  ios: {
+                    supportedFamilies: ['systemSmall', 'systemMedium', 'accessoryRectangular', 'accessoryInline'],
+                    contentMarginsDisabled: false,
+                  },
                 },
               ],
             },
