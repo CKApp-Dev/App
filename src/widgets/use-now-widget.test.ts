@@ -3,12 +3,16 @@ import { afterEach, beforeEach, describe, expect, jest, test } from '@jest/globa
 import type { NowInput } from '@/features/home/now';
 
 import { nowTimeline } from './now-timeline';
+import type { NowWidgetProps } from './now-timeline';
 
 let mockPlatform = 'ios';
 let mockNativeModule: { widgetsDirectory: string } | null = null;
 const mockNativeLookup = jest.fn(() => mockNativeModule);
 const mockLayoutLoads = jest.fn();
 const mockUpdateTimeline = jest.fn();
+const mockUpdateSnapshot = jest.fn();
+const mockReload = jest.fn();
+const mockGetTimeline = jest.fn(() => Promise.resolve([] as { date: Date; props: NowWidgetProps }[]));
 const mockEffects: (() => void)[] = [];
 
 jest.mock('expo', () => ({ requireOptionalNativeModule: mockNativeLookup }));
@@ -20,7 +24,7 @@ jest.mock('expo-widgets', () => { throw new Error("Cannot find native module 'Ex
 jest.mock('./now-widget', () => {
   mockLayoutLoads();
   if (!mockNativeModule?.widgetsDirectory) throw new Error('Widget layout loaded without native support');
-  return { nowWidget: () => ({ updateTimeline: mockUpdateTimeline }) };
+  return { nowWidget: () => ({ updateTimeline: mockUpdateTimeline, updateSnapshot: mockUpdateSnapshot, getTimeline: mockGetTimeline, reload: mockReload }) };
 });
 
 const INPUT: Omit<NowInput, 'now'> = {
@@ -39,11 +43,60 @@ beforeEach(() => {
   mockPlatform = 'ios';
   mockNativeModule = null;
   mockEffects.length = 0;
+  mockGetTimeline.mockResolvedValue([]);
 });
 
 afterEach(() => { jest.useRealTimers(); });
 
 describe('optional Now widget', () => {
+  test.each(['ios', 'android', 'web'])('skips launch initialization without native widget support on %s', (platform) => {
+    mockPlatform = platform;
+    const hook = loadHook();
+    hook.useInitializeNowWidget();
+    expect(() => mockEffects[0]()).not.toThrow();
+    expect(mockLayoutLoads).not.toHaveBeenCalled();
+    expect(mockGetTimeline).not.toHaveBeenCalled();
+    expect(mockUpdateSnapshot).not.toHaveBeenCalled();
+  });
+
+  test('registers the widget and seeds its gallery on first launch before choosing a class or loading data', async () => {
+    mockNativeModule = { widgetsDirectory: 'file:///widget-group' };
+    const hook = loadHook();
+    hook.useInitializeNowWidget();
+    mockEffects[0]();
+    expect(mockLayoutLoads).toHaveBeenCalledTimes(1);
+    await mockGetTimeline.mock.results[0].value;
+    expect(mockUpdateSnapshot).toHaveBeenCalledWith({ eyebrow: 'CK APP', title: '選擇班級', next: '打開 App 選擇班級' });
+    expect(mockUpdateTimeline).not.toHaveBeenCalled();
+  });
+
+  test('keeps the saved timetable when launching without data', async () => {
+    mockNativeModule = { widgetsDirectory: 'file:///widget-group' };
+    mockGetTimeline.mockResolvedValue(nowTimeline(INPUT, NOW));
+    const hook = loadHook();
+    hook.useInitializeNowWidget();
+    mockEffects[0]();
+    await mockGetTimeline.mock.results[0].value;
+    expect(mockReload).toHaveBeenCalledTimes(1);
+    expect(mockUpdateSnapshot).not.toHaveBeenCalled();
+    expect(mockUpdateTimeline).not.toHaveBeenCalled();
+  });
+
+  test('does not overwrite a new timetable if the initial empty read finishes later', async () => {
+    mockNativeModule = { widgetsDirectory: 'file:///widget-group' };
+    let completeRead!: (entries: { date: Date; props: NowWidgetProps }[]) => void;
+    mockGetTimeline.mockImplementationOnce(() => new Promise((resolve) => { completeRead = resolve; }));
+    const hook = loadHook();
+    hook.useInitializeNowWidget();
+    hook.useNowWidget(INPUT, '2026-10-08');
+    mockEffects[0]();
+    mockEffects[1]();
+    completeRead([]);
+    await mockGetTimeline.mock.results[0].value;
+    expect(mockUpdateTimeline).toHaveBeenCalledTimes(1);
+    expect(mockUpdateSnapshot).not.toHaveBeenCalled();
+  });
+
   test('loads and runs without ExpoWidgets in the installed iOS binary', () => {
     const hook = loadHook();
     expect(hook.WIDGETS_ENABLED).toBe(false);

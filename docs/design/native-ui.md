@@ -486,7 +486,7 @@ remote data.
 - Keeps the WebView (it is a website). Failure → kit `EmptyState` 目前無法載入
   紀念品商店。 with 重試 and 在瀏覽器開啟 actions; header button 在瀏覽器開啟.
 
-### Widgets (iOS, opt-in)
+### Widgets (iOS)
 - The 現在 widget (`src/widgets/`, expo-widgets): Home Screen small and medium
   on the navy (eyebrow, subject, the bell rail with ▼, a live countdown
   `22:56 後下課` in the timer style; the medium one lists the rest of the day,
@@ -497,14 +497,22 @@ remote data.
   the rest 45% white (3.5:1 on the navy). The
   layout is a `'widget'` function (Babel turns it into source text that the
   extension runs with @expo/ui's SwiftUI views as globals).
+- At launch, the app registers the layout before onboarding or timetable
+  loading. An empty installation gets a 選擇班級 / 打開 App 選擇班級 snapshot
+  for the widget gallery; an existing saved timeline is preserved. WidgetKit's
+  empty-props placeholder uses the same fallback.
 - The app writes the timeline whenever 今天's inputs change and once a day: the
   next 36 hours, one entry per bell and midnight (`now-timeline.ts`,
   unit-tested), so the widget follows the school day without the app open.
-- Built only with `ENABLE_WIDGETS=1` at prebuild: it adds the extension
+- Included by default at prebuild: it adds the extension
   (`org.capacitor.quasar.ckapp.ExpoWidgetsTarget`) and the App Group
-  `group.org.capacitor.quasar.ckapp`. Before turning it on for store builds,
-  register both in the Apple Developer account and add the extension's
-  provisioning profile to the release signing.
+  `group.org.capacitor.quasar.ckapp`. Both the app and extension identifiers
+  must have that App Group registered in the Apple Developer account. Release
+  signing validates and uses a separate distribution profile for each target
+  (`BUILD_PROVISION_PROFILE_BASE64` and `BUILD_WIDGET_PROVISION_PROFILE_BASE64`).
+  `ENABLE_WIDGETS=0` opts out locally when the signing setup lacks App Groups.
+  Native regeneration and reinstallation are required to add the extension
+  to an existing app; Metro reloads and Expo Go cannot install it.
 - A Live Activity would need a push server to move from one period to the
   next while the app is closed, so there is none.
 

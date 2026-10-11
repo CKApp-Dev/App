@@ -32,7 +32,7 @@ On branch `redesign/fixed-tabs` (uncommitted). See docs/design/native-ui.md.
 - 行事曆: 假 / 考 day marks, long events dot their ends only, and a grade
   filter (on by default).
 - 美食: nearest first with distances; links open a view and a menu day.
-- iOS widget (expo-widgets 57.0.22, opt-in with `ENABLE_WIDGETS=1`).
+- iOS widget (expo-widgets 57.0.22, included by default; `ENABLE_WIDGETS=0` opts out locally).
 - A period now ends at its bell (`getCurrentPeriod`), on 今天 and 課表 alike.
 
 Verified on the iPhone Air simulator (iOS, the app's real data, the clock set

@@ -20,6 +20,7 @@ jobs:
       IOS_PUSH_ENVIRONMENT: production
       IOS_TEAM_ID: FJX3SGU9AL
       IOS_PROFILE_NAME: Github Actions
+      ENABLE_WIDGETS: '1'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
@@ -71,77 +72,123 @@ jobs:
           npx expo prebuild --platform ios --no-install
           pod install --project-directory=ios
 
-      - name: Install Apple certificate and provisioning profile
+      - name: Install Apple certificate and provisioning profiles
         env:
           BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
           P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
           BUILD_PROVISION_PROFILE_BASE64: ${{ secrets.BUILD_PROVISION_PROFILE_BASE64 }}
+          BUILD_WIDGET_PROVISION_PROFILE_BASE64: ${{ secrets.BUILD_WIDGET_PROVISION_PROFILE_BASE64 }}
           KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
         run: |
+          if [[ -z "$BUILD_PROVISION_PROFILE_BASE64" || -z "$BUILD_WIDGET_PROVISION_PROFILE_BASE64" ]]; then
+            echo '::error::Both BUILD_PROVISION_PROFILE_BASE64 (app) and BUILD_WIDGET_PROVISION_PROFILE_BASE64 (widget extension) are required. Create distribution profiles for both app identifiers with the shared App Group group.org.capacitor.quasar.ckapp.'
+            exit 1
+          fi
           CERTIFICATE_PATH="$RUNNER_TEMP/build_certificate.p12"
           PROFILE_PATH="$RUNNER_TEMP/build_pp.mobileprovision"
+          WIDGET_PROFILE_PATH="$RUNNER_TEMP/build_widget_pp.mobileprovision"
           KEYCHAIN_PATH="$RUNNER_TEMP/app-signing.keychain-db"
           printf '%s' "$BUILD_CERTIFICATE_BASE64" | base64 --decode > "$CERTIFICATE_PATH"
           printf '%s' "$BUILD_PROVISION_PROFILE_BASE64" | base64 --decode > "$PROFILE_PATH"
+          printf '%s' "$BUILD_WIDGET_PROVISION_PROFILE_BASE64" | base64 --decode > "$WIDGET_PROFILE_PATH"
+          security cms -D -i "$PROFILE_PATH" > "$RUNNER_TEMP/profile.plist"
+          security cms -D -i "$WIDGET_PROFILE_PATH" > "$RUNNER_TEMP/widget-profile.plist"
+          python3 <<'PY'
+          import os, pathlib, plistlib, re, shutil
+
+          team_id = os.environ['IOS_TEAM_ID']
+          app_id = 'org.capacitor.quasar.ckapp'
+          app_group = f'group.{app_id}'
+          runner_temp = pathlib.Path(os.environ['RUNNER_TEMP'])
+          profiles = [
+              (app_id, 'BUILD_PROVISION_PROFILE_BASE64', 'profile.plist', 'build_pp.mobileprovision', 'IOS_PROFILE_UUID'),
+              (f'{app_id}.ExpoWidgetsTarget', 'BUILD_WIDGET_PROVISION_PROFILE_BASE64', 'widget-profile.plist', 'build_widget_pp.mobileprovision', 'IOS_WIDGET_PROFILE_UUID'),
+          ]
+          validated = []
+          for bundle_id, secret_name, plist_name, profile_name, environment_name in profiles:
+              with (runner_temp / plist_name).open('rb') as profile_file:
+                  profile = plistlib.load(profile_file)
+              entitlements = profile.get('Entitlements', {})
+
+              def fail(message):
+                  raise SystemExit(f'::error::{secret_name}: {message} Regenerate the distribution profile and update this repository secret.')
+
+              if profile.get('TeamIdentifier') != [team_id]:
+                  fail(f'The profile must belong to Apple team {team_id}.')
+              if entitlements.get('application-identifier') != f'{team_id}.{bundle_id}':
+                  fail(f'The profile must be for the exact app identifier {bundle_id}.')
+              if app_group not in entitlements.get('com.apple.security.application-groups', []):
+                  fail(f'Enable the shared App Group {app_group} on {bundle_id}.')
+              if bundle_id == app_id:
+                  if profile.get('Name') != os.environ['IOS_PROFILE_NAME']:
+                      fail(f'The app profile must be named {os.environ["IOS_PROFILE_NAME"]}.')
+                  if entitlements.get('aps-environment') != os.environ['IOS_PUSH_ENVIRONMENT']:
+                      fail('Enable Push Notifications on the Apple app identifier; the profile must include the production APNs entitlement.')
+              profile_uuid = profile.get('UUID', '')
+              if not re.fullmatch(r'[0-9A-Fa-f]{8}(?:-[0-9A-Fa-f]{4}){3}-[0-9A-Fa-f]{12}', profile_uuid):
+                  fail('The profile is missing a valid UUID.')
+              validated.append((profile_uuid, profile_name, environment_name))
+
+          profile_directory = pathlib.Path.home() / 'Library/MobileDevice/Provisioning Profiles'
+          profile_directory.mkdir(parents=True, exist_ok=True)
+          with open(os.environ['GITHUB_ENV'], 'a') as environment_file:
+              for profile_uuid, profile_name, environment_name in validated:
+                  environment_file.write(f'{environment_name}={profile_uuid}\n')
+                  shutil.copyfile(runner_temp / profile_name, profile_directory / f'{profile_uuid}.mobileprovision')
+          PY
           security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
           security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
           security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
           security import "$CERTIFICATE_PATH" -P "$P12_PASSWORD" -t cert -f pkcs12 -k "$KEYCHAIN_PATH" -T /usr/bin/codesign -T /usr/bin/security
           security set-key-partition-list -S apple-tool:,apple:,codesign: -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH" > /dev/null
           security list-keychains -d user -s "$KEYCHAIN_PATH"
-          security cms -D -i "$PROFILE_PATH" > "$RUNNER_TEMP/profile.plist"
-          PROFILE_UUID="$(/usr/libexec/PlistBuddy -c 'Print :UUID' "$RUNNER_TEMP/profile.plist")"
-          PROFILE_NAME="$(/usr/libexec/PlistBuddy -c 'Print :Name' "$RUNNER_TEMP/profile.plist")"
-          PROFILE_TEAM="$(/usr/libexec/PlistBuddy -c 'Print :TeamIdentifier:0' "$RUNNER_TEMP/profile.plist")"
-          PROFILE_APP="$(/usr/libexec/PlistBuddy -c 'Print :Entitlements:application-identifier' "$RUNNER_TEMP/profile.plist")"
-          PROFILE_PUSH_ENVIRONMENT="$(/usr/libexec/PlistBuddy -c 'Print :Entitlements:aps-environment' "$RUNNER_TEMP/profile.plist" 2>/dev/null || true)"
-          test "$PROFILE_NAME" = "$IOS_PROFILE_NAME"
-          test "$PROFILE_TEAM" = "$IOS_TEAM_ID"
-          test "$PROFILE_APP" = "${IOS_TEAM_ID}.org.capacitor.quasar.ckapp"
-          if [ "$PROFILE_PUSH_ENVIRONMENT" != "$IOS_PUSH_ENVIRONMENT" ]; then
-            echo '::error::The distribution provisioning profile must include the production APNs entitlement. Enable Push Notifications on the Apple app identifier, regenerate the profile, and update BUILD_PROVISION_PROFILE_BASE64.'
-            exit 1
-          fi
           SIGNING_IDENTITY="$(security find-identity -v -p codesigning "$KEYCHAIN_PATH" | awk '/Apple Distribution|iPhone Distribution/ { print $2; exit }')"
           test -n "$SIGNING_IDENTITY"
-          mkdir -p "$HOME/Library/MobileDevice/Provisioning Profiles"
-          cp "$PROFILE_PATH" "$HOME/Library/MobileDevice/Provisioning Profiles/${PROFILE_UUID}.mobileprovision"
-          echo "IOS_PROFILE_UUID=$PROFILE_UUID" >> "$GITHUB_ENV"
           echo "IOS_SIGNING_IDENTITY=$SIGNING_IDENTITY" >> "$GITHUB_ENV"
 
       - name: Configure app signing and export options
         run: |
-          # Apply signing only to the app target, never to CocoaPods targets.
+          # Apply signing to the app and widget extension targets, never to CocoaPods targets.
           node <<'NODE'
           const fs = require('node:fs');
           const xcode = require('xcode');
           const project = xcode.project('ios/CKAPP.xcodeproj/project.pbxproj');
           project.parseSync();
-          let updated = 0;
+          const profiles = new Map([
+            ['org.capacitor.quasar.ckapp', process.env.IOS_PROFILE_UUID],
+            ['org.capacitor.quasar.ckapp.ExpoWidgetsTarget', process.env.IOS_WIDGET_PROFILE_UUID],
+          ]);
+          const updated = new Set();
           for (const config of Object.values(project.pbxXCBuildConfigurationSection())) {
             const settings = config.buildSettings;
-            if (!settings || String(settings.PRODUCT_BUNDLE_IDENTIFIER).replaceAll('"', '') !== 'org.capacitor.quasar.ckapp') continue;
+            if (!settings) continue;
+            const bundleId = String(settings.PRODUCT_BUNDLE_IDENTIFIER).replaceAll('"', '');
+            if (!profiles.has(bundleId)) continue;
             settings.CODE_SIGN_STYLE = 'Manual';
             settings.DEVELOPMENT_TEAM = process.env.IOS_TEAM_ID;
             settings.CODE_SIGN_IDENTITY = process.env.IOS_SIGNING_IDENTITY;
-            settings.PROVISIONING_PROFILE_SPECIFIER = '"' + process.env.IOS_PROFILE_NAME + '"';
+            settings.PROVISIONING_PROFILE_SPECIFIER = '"' + profiles.get(bundleId) + '"';
             settings.MARKETING_VERSION = process.env.APP_VERSION;
             settings.CURRENT_PROJECT_VERSION = process.env.BUILD_NUMBER;
-            updated++;
+            updated.add(bundleId);
           }
-          if (!updated) throw new Error('Could not find the CK APP target to configure signing.');
+          for (const bundleId of profiles.keys()) {
+            if (!updated.has(bundleId)) throw new Error(`Could not find the ${bundleId} target to configure signing. Check that ENABLE_WIDGETS=1 during prebuild.`);
+          }
           fs.writeFileSync(project.filepath, project.writeSync());
           NODE
           python3 <<'PY'
           import os, plistlib
-          # Preserves the old archive.plist's App Store export and profile mapping.
           options = {
               'method': 'app-store-connect',
               'destination': 'export',
               'signingStyle': 'manual',
               'signingCertificate': os.environ['IOS_SIGNING_IDENTITY'],
               'teamID': os.environ['IOS_TEAM_ID'],
-              'provisioningProfiles': {'org.capacitor.quasar.ckapp': os.environ['IOS_PROFILE_NAME']},
+              'provisioningProfiles': {
+                  'org.capacitor.quasar.ckapp': os.environ['IOS_PROFILE_UUID'],
+                  'org.capacitor.quasar.ckapp.ExpoWidgetsTarget': os.environ['IOS_WIDGET_PROFILE_UUID'],
+              },
               'manageAppVersionAndBuildNumber': False,
           }
           with open(os.path.join(os.environ['RUNNER_TEMP'], 'ExportOptions.plist'), 'wb') as export_file:
@@ -180,9 +227,13 @@ jobs:
         if: always()
         run: |
           security delete-keychain "$RUNNER_TEMP/app-signing.keychain-db" || true
-          rm -f "$RUNNER_TEMP/build_certificate.p12" "$RUNNER_TEMP/build_pp.mobileprovision" "$RUNNER_TEMP/profile.plist"
+          rm -f "$RUNNER_TEMP/build_certificate.p12" "$RUNNER_TEMP/build_pp.mobileprovision" "$RUNNER_TEMP/profile.plist" \
+            "$RUNNER_TEMP/build_widget_pp.mobileprovision" "$RUNNER_TEMP/widget-profile.plist"
           if [[ -n "${IOS_PROFILE_UUID:-}" ]]; then
             rm -f "$HOME/Library/MobileDevice/Provisioning Profiles/${IOS_PROFILE_UUID}.mobileprovision"
+          fi
+          if [[ -n "${IOS_WIDGET_PROFILE_UUID:-}" ]]; then
+            rm -f "$HOME/Library/MobileDevice/Provisioning Profiles/${IOS_WIDGET_PROFILE_UUID}.mobileprovision"
           fi
 
   deploy-ios:

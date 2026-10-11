@@ -10,6 +10,7 @@ import { NotificationRuntime } from '@/features/announcements/push';
 import { isAttemptingLegacyImport, startLegacyImport } from '@/features/legacy-import/session';
 import { queryClient } from '@/lib/query-client';
 import { useStackScreenOptions } from '@/navigation/stack-options';
+import { useInitializeNowWidget } from '@/widgets/use-now-widget';
 
 void SplashScreen.preventAutoHideAsync();
 
@@ -23,6 +24,7 @@ let splashHidden = false;
 export const unstable_settings = { anchor: '(tabs)' };
 
 export default function RootLayout() {
+  useInitializeNowWidget();
   const colorScheme = useColorScheme();
   const options = useStackScreenOptions();
   // Read at mount: the attempt may have ended while an earlier mount was up.
