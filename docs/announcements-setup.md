@@ -73,14 +73,20 @@ workflow dispatch provides an immediate retry once the worker is configured.
    and iOS **APNs push credential** with `eas credentials`. These are
    server-side credentials and must not enter the app bundle or source repo.
    FCM v1 credential upload is still required; associate it with both Android
-   application identifiers when testing release and debug builds. The linked
-   EAS project and account currently have no iOS APNs key. Upload an existing
-   APNs `.p8` key with its Key ID and Apple team `FJX3SGU9AL`, or log in to that
-   Apple Developer account through `eas credentials -p ios` to create one.
-   Enable Push Notifications on the existing Apple app identifier, regenerate
-   its provisioning profile, and update the existing CI profile secret.
+   application identifiers when testing release and debug builds.
+   As of 2026-10-11, APNs key `XNF4WWTXKH` is assigned to the iOS app in EAS
+   for Apple team `FJX3SGU9AL`. Push Notifications is enabled on the main
+   identifier, both app identifiers share the required App Group, and the
+   validated app/widget distribution profiles are uploaded to GitHub Actions.
+   Production delivery and notification tap routing passed a locked-iPhone
+   test on TestFlight `4.0.0 (77)`. The existing distribution
+   certificate expires at 2026-10-16 00:41 (Asia/Taipei) and must be renewed
+   for later builds.
    Local iOS builds default to `IOS_PUSH_ENVIRONMENT=development`; release CI
    sets `production` and verifies that the profile has that APNs entitlement.
+   For future credential maintenance, or if Apple denies developer access, use the
+   [Account Holder handoff](ios-push-handoff.md) to obtain the key and both
+   signing profiles, then upload the supplied key without Apple login.
 4. Regenerate native projects and rebuild the app. Changing JavaScript alone
    cannot add the native notifications module or signing entitlement. Expo Go
    is insufficient for this flow; use native development/release builds on
@@ -90,8 +96,12 @@ workflow dispatch provides an immediate retry once the worker is configured.
    [backend guide](https://github.com/CKApp-Dev/Notification/blob/main/firebase/README.md).
    Otherwise leave the flag unset.
 
-The user explicitly opts in from Settings → 公告通知. Startup never opens a
-permission prompt. Anonymous Auth uses SQLite-backed persistence to keep the
+New installs enable announcements by default and automatically request system
+notification permission on first entering the app in the foreground. Users
+still need to accept the system prompt. Saved notification choices are
+preserved, and a denied or revoked permission does not trigger another
+automatic prompt. Settings → 公告通知 lets users disable notifications or
+explicitly retry permission setup. Anonymous Auth uses SQLite-backed persistence to keep the
 same device identity across launches. Disable requests are persisted and
 retried after offline failures. Foreground reconciliation handles changes to
 OS permission and native-token rotation. Firestore snapshots never generate
