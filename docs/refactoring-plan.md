@@ -32,7 +32,7 @@ CK App is a Quasar/Vue 3 campus mobile app (~8,651 lines) for Taipei Jianguo Hig
 
 ### 1-B. Metro SOAP credentials — done, see PR #14
 
-**Problem:** `diegopeng0426@gmail.com` / `Hn2pJ2511N` were hardcoded as plain text in 3 XML template strings inside `TransportPage.vue`.
+**Problem:** The Metro API username and password were hardcoded as plain text in 3 XML template strings inside `TransportPage.vue`.
 
 **Fix implemented in PR #14:** rather than a `src/config/metroApi.js` constants file (which would still commit the value to source, just in a different file), the credential now reads from `process.env.METRO_API_USER`/`METRO_API_PASS` — a gitignored `.env.local` locally, GitHub Actions secrets in CI. **Note:** the account owner has decided not to rotate the actual credential value, accepting that it's already known from git history and that a client-only app embeds whatever value is configured into the shipped bundle regardless of rotation.
 
