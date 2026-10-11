@@ -2,6 +2,17 @@
 
 Status: design spec for the 2026-10 redesign of CK APP's React Native screens.
 
+The Today screen also includes **最新公告** immediately after the 現在 card.
+It uses the existing Section, Row, Notice, Loading and TextBlock components on
+all platforms. Show up to three published announcements, their Taipei release
+dates, and an explicit 未讀 label; 全部 opens the latest 50 announcements.
+Tapping a row or system notification opens the same full-text detail screen,
+marks it read, and offers the optional HTTPS link. Loading, empty, offline and
+withdrawn-announcement states remain inside the native list. Settings includes
+公告通知 with an explicit permission control and a link to OS settings when
+permission is denied. Publication scheduling and admin tools live outside the
+mobile UI.
+
 ## Why
 
 The first React Native build stacked React Native cards full of full-width

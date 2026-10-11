@@ -4,6 +4,8 @@
 import { router, type Href } from 'expo-router';
 
 import { HeaderActions } from '@/components/header-actions';
+import { AnnouncementsSection } from '@/features/announcements/section';
+import { useAnnouncements } from '@/features/announcements/use-announcements';
 import { getWeekNumber, getWeekParity } from '@/features/schedule/timetable';
 import { useTimetables } from '@/features/schedule/use-timetables';
 import { gradeOfClass, schoolDayOf, type SchoolCalendarContext } from '@/features/todo/school-days';
@@ -49,6 +51,7 @@ export default function TodayScreen() {
   const widgets = useSettingsStore((state) => state.homeWidgets);
   const timetable = useTimetables();
   const school = useSchoolEvents();
+  const announcements = useAnnouncements();
   const userClass = useScheduleStore((state) => state.userClass);
   const rows = useScheduleStore((state) => state.rows);
 
@@ -117,8 +120,9 @@ export default function TodayScreen() {
       */}
       <ListScreen
         subtitle={todayHeading(now, week, parity)}
-        onRefresh={() => Promise.allSettled([timetable.refetch(), school.refetch(), commute.refetch()])}>
+        onRefresh={() => Promise.allSettled([timetable.refetch(), school.refetch(), commute.refetch(), announcements.refetch()])}>
         <Section plain>{card}</Section>
+        <AnnouncementsSection announcements={announcements} />
         {widgets.todo ? <AgendaSection now={now} calendar={calendar} /> : null}
         {widgets.lunch ? <LunchSection now={now} calendar={calendar} lunchEnd={lunchEnd} /> : null}
         {/* Before and after school the card carries the commute itself. */}
