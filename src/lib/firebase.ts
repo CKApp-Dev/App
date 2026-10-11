@@ -1,9 +1,8 @@
 import Constants from 'expo-constants';
 import { getApp, getApps, initializeApp, type FirebaseApp, type FirebaseOptions } from 'firebase/app';
 import * as FirebaseAuth from 'firebase/auth';
-import { getAuth, initializeAuth, signInAnonymously, type Auth, type Persistence } from 'firebase/auth';
+import { initializeAuth, signInAnonymously, type Auth, type Persistence } from 'firebase/auth';
 import { getFirestore, type Firestore } from 'firebase/firestore';
-import { Platform } from 'react-native';
 
 // Installs the same SQLite-backed localStorage the other app stores use.
 import '@/lib/storage';
@@ -43,13 +42,10 @@ export function getDeviceAuth(): Promise<Auth> {
   deviceAuth = (async () => {
     const firebase = getFirebaseClient();
     if (!firebase) throw new Error('Firebase is not configured.');
-    // Browser Firebase handles its own cross-tab persistence. Native Auth
-    // uses the existing SQLite store and needs no additional native SDK.
+    // Native Auth uses the existing SQLite store and needs no additional native SDK.
     // Keep the initialized instance even if the sign-in request fails offline.
     // Reinitializing with a new persistence constructor would reject retries.
-    const auth = initializedAuth ??= Platform.OS === 'web'
-      ? getAuth(firebase.app)
-      : initializeAuth(firebase.app, { persistence: nativePersistence() });
+    const auth = initializedAuth ??= initializeAuth(firebase.app, { persistence: nativePersistence() });
     await auth.authStateReady();
     if (!auth.currentUser) await signInAnonymously(auth);
     return auth;

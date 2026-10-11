@@ -6,7 +6,7 @@ Read the [README](README.en.md) for the React Native architecture, configuration
 
 ## Local development
 
-Use Node.js 22+ and Yarn Classic. From the repository root:
+Use Node.js 24.12.0+ and Yarn Classic. From the repository root:
 
 ```bash
 yarn install --frozen-lockfile
@@ -27,7 +27,7 @@ After changing native dependencies or configuration, regenerate with `npx expo p
 2. Put routes in `src/app/`. The five tabs are fixed (`TABS` in `src/features/registry.ts`).
 3. Add new features inside an existing tab: daily ones in the tab they belong to, the rest in Campus (`src/app/(tabs)/campus/` and `CAMPUS_SCREENS`).
 4. Use Zustand actions in `src/store/` with `src/lib/storage.ts` for persistence. Do not directly mutate arrays in screens.
-5. Build screens from the `@/ui` kit only: a `ListScreen` holds only `Section`s, and a `Section` holds rows and blocks. Do not put React Native or `@expo/ui` views inside them; show React Native content (maps, images) through `Embedded`. For a new component or prop, define it in `src/ui/types.ts` first, then implement it in `src/ui/ios/` (SwiftUI), `src/ui/android/` (Compose) and `src/ui/kit.tsx` (web and Jest), and add it to the [design spec](docs/design/native-ui.md)'s mapping table.
+5. Build screens from the `@/ui` kit only: a `ListScreen` holds only `Section`s, and a `Section` holds rows and blocks. Do not put React Native or `@expo/ui` views inside them; show React Native content (maps, images) through `Embedded`. For a new component or prop, define it in `src/ui/types.ts` first, then implement it in `src/ui/ios/` (SwiftUI) and `src/ui/android/` (Compose), and add it to the [design spec](docs/design/native-ui.md)'s mapping table. `src/ui/kit.tsx` re-exports the Android kit for TypeScript; Metro selects the native platform implementation.
 6. Put navigation-bar buttons, menus and view switches (such as Food's 熱食部 / 附近) in `HeaderActions` (`src/components/header-actions`). Add icons to `src/components/icons.ts` with both an SF Symbol and a Material Symbol. The line under a tab's title is `ListScreen`'s `subtitle`.
 
 ### Design rules

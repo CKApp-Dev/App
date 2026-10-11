@@ -4,7 +4,6 @@ const mockAuth = { authStateReady: jest.fn(async () => {}), currentUser: null as
 const mockInitialize = jest.fn(() => mockAuth);
 const mockSignIn = jest.fn(async () => { mockAuth.currentUser = { uid: 'same-device' }; });
 jest.mock('expo-constants', () => ({ __esModule: true, default: { expoConfig: { extra: { firebase: { apiKey: 'test', projectId: 'test', appId: 'test' } } } } }));
-jest.mock('react-native', () => ({ Platform: { OS: 'ios' } }));
 jest.mock('@/lib/storage', () => ({}));
 jest.mock('firebase/app', () => ({ getApps: () => [], initializeApp: () => ({ name: 'test' }) }));
 jest.mock('firebase/firestore', () => ({ getFirestore: () => ({}) }));

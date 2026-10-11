@@ -1,7 +1,8 @@
 # Announcements and system notifications
 
 The home screen reads published announcements from the supplied Firebase
-project, `ck-app-database`. Administrators use the separate [admin project](../admin/README.md)
+project, `ck-app-database`. Administrators use the separate
+[admin project](https://github.com/ChrisSun0731/CK-App-Admin)
 to save drafts or schedule a release in **Asia/Taipei**. A GitHub Actions worker
 publishes due entries and sends remote system notifications even when CK APP
 is closed. It checks about every five minutes; GitHub can delay or drop runs,
@@ -13,35 +14,36 @@ uses Firestore and Authentication without Cloud Functions or Blaze billing.
 | Project | Source | Purpose |
 | --- | --- | --- |
 | Expo mobile app | repository root | Published feed, detail, unread state, notification permission and tap routing |
-| Admin website | `admin/` | Google sign-in, owner-managed account invitations, authoring, preview, scheduling, archive |
-| Firebase / Actions worker | `firebase/` | Rules, indexes, server publication, push delivery and receipts |
+| Admin website | [CK-App-Admin repository root](https://github.com/ChrisSun0731/CK-App-Admin) | Google sign-in, owner-managed account invitations, authoring, preview, scheduling, archive |
+| Firebase / Actions worker | [CK-App-Admin `firebase/`](https://github.com/ChrisSun0731/CK-App-Admin/tree/main/firebase) | Rules, indexes, server publication, push delivery and receipts |
 
-Public Firebase configuration lives in `config/firebase.public.json` and
-`admin/src/firebase-config.json`. These identify the existing Firebase web app;
-they do not authorize administrators. Never add service-account keys or OAuth
-tokens to either frontend. The intended administrator is
-`chris20090731@gmail.com`; the project-management account is
-`ckappofficial@gmail.com`. Google sign-in alone grants no publishing access.
+The admin website, backend, deployment workflows, and their tests are maintained
+in `ChrisSun0731/CK-App-Admin`. This repository contains the mobile app and its
+public configuration.
 
-## Account setup
+The mobile app's public Firebase configuration lives in
+`config/firebase.public.json`; the admin repository has its own
+[`src/firebase-config.json`](https://github.com/ChrisSun0731/CK-App-Admin/blob/main/src/firebase-config.json).
+These identify the existing Firebase web app; they do not authorize
+administrators. Never add service-account keys or OAuth tokens to either
+frontend. Google sign-in alone grants no publishing access.
+
+## Backend setup
 
 1. In Firebase console, initialize Authentication and enable **Google** and
    **Anonymous** sign-in. Set the Google provider's support email. Add the
-   deployed admin site's host to authorized domains.
-2. Deploy rules/indexes and configure the GitHub Actions worker following
-   `firebase/README.md`. The worker uses short-lived Google credentials through
-   Workload Identity Federation. No service-account key is committed. Existing
-   Firestore data is retained; private legacy collections remain unavailable
-   to clients under the new default-deny rules.
-3. Have the intended owner sign in once, then bootstrap their verified Google
-   user with `admin: true` and `accountManager: true` using the explicit-email
-   script's `--account-manager` option. Refresh permissions on the website or
-   sign out/in. The owner can then use **帳戶管理** to invite other Google
-   emails, edit names, disable access, or remove invitations. Invitations do
-   not send email; share the admin website link with each invited person.
-   Their Firebase Auth account is created on first Google sign-in. Disabled
-   invitations revoke the access that they granted; independent custom claims
-   require a trusted operator to remove.
+   deployed admin site's host to authorized domains. The mobile app uses
+   Anonymous sign-in to register each device for notifications.
+2. From the separate admin repository, deploy rules/indexes and configure the
+   GitHub Actions worker following its
+   [backend guide](https://github.com/ChrisSun0731/CK-App-Admin/blob/main/firebase/README.md).
+   The worker uses short-lived Google credentials through Workload Identity
+   Federation. No service-account key is committed. Existing Firestore data is
+   retained; private legacy collections remain unavailable to clients under
+   the default-deny rules.
+3. Follow that repository's
+   [administrator setup](https://github.com/ChrisSun0731/CK-App-Admin#readme)
+   to grant an owner access and invite announcement authors.
 
 The standalone admin source and worker are published in
 [ChrisSun0731/CK-App-Admin](https://github.com/ChrisSun0731/CK-App-Admin).
@@ -80,8 +82,10 @@ if needed. Manual workflow dispatch provides an immediate retry.
    cannot add the native notifications module or signing entitlement. Expo Go
    is insufficient for this flow; use native development/release builds on
    physical Android and iOS devices.
-5. If Expo push access protection is enabled, configure the backend secret as
-   described in `firebase/README.md`. Otherwise leave the flag unset.
+5. If Expo push access protection is enabled, configure the backend secret in
+   the admin repository as described in its
+   [backend guide](https://github.com/ChrisSun0731/CK-App-Admin/blob/main/firebase/README.md).
+   Otherwise leave the flag unset.
 
 The user explicitly opts in from Settings → 公告通知. Startup never opens a
 permission prompt. Anonymous Auth uses SQLite-backed persistence to keep the
@@ -92,9 +96,11 @@ local alerts, so opening the app does not replay old announcements as pushes.
 
 ## Release verification
 
-- Run root `yarn typecheck`, `yarn test --runInBand`, and `yarn lint`.
-- Run admin `npm test` and `npm run build`.
-- Run backend `npm test` and `npm run test:emulator` (Java 21+).
+- In this repository's root, run `yarn typecheck`, `yarn test --runInBand`, and
+  `yarn lint`.
+- In the separate admin repository's root, run `npm test` and `npm run build`.
+- In the admin repository's `firebase/` directory, run `npm test` and
+  `npm run test:emulator` (Java 21+).
 - Verify on both native platforms, including dark mode and larger text sizes.
   Schedule an announcement ahead; it must remain invisible before release,
   appear on Home afterward, and notify an opted-in device with the app closed.

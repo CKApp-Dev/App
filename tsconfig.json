@@ -18,8 +18,6 @@
     "expo-env.d.ts"
   ],
   "exclude": [
-    "node_modules",
-    "admin",
-    "firebase"
+    "node_modules"
   ]
 }

@@ -6,7 +6,7 @@
 
 ## 本機開發
 
-使用 Node.js 22+ 與 Yarn Classic，從 repo 根目錄執行：
+使用 Node.js 24.12.0+ 與 Yarn Classic，從 repo 根目錄執行：
 
 ```bash
 yarn install --frozen-lockfile
@@ -27,7 +27,7 @@ Android debug 版本以 **CK APP Dev**（`org.capacitor.quasar.ckapp.dev`）安�
 2. 路由放在 `src/app/`。分頁固定為五個（`src/features/registry.ts` 的 `TABS`）。
 3. 新功能放進既有分頁：每天用的放在對應分頁裡，其他的加到校園（`src/app/(tabs)/campus/` 與 `CAMPUS_SCREENS`）。
 4. 持久狀態使用 `src/store/` 的 Zustand store 與 `src/lib/storage.ts`。不要在畫面中直接改動陣列；使用 store action。
-5. 畫面只用 `@/ui` 的元件：`ListScreen` 裡只有 `Section`，`Section` 裡是列與區塊。不要在其中直接放 React Native 或 `@expo/ui` 的元件；地圖、圖片等 React Native 內容用 `Embedded`。需要新元件或新屬性時，先在 `src/ui/types.ts` 定義，再分別實作 `src/ui/ios/`（SwiftUI）、`src/ui/android/`（Compose）與 `src/ui/kit.tsx`（網頁與 Jest 用），並更新 [設計規格](docs/design/native-ui.md) 的對照表。
+5. 畫面只用 `@/ui` 的元件：`ListScreen` 裡只有 `Section`，`Section` 裡是列與區塊。不要在其中直接放 React Native 或 `@expo/ui` 的元件；地圖、圖片等 React Native 內容用 `Embedded`。需要新元件或新屬性時，先在 `src/ui/types.ts` 定義，再分別實作 `src/ui/ios/`（SwiftUI）與 `src/ui/android/`（Compose），並更新 [設計規格](docs/design/native-ui.md) 的對照表。`src/ui/kit.tsx` 供 TypeScript 使用，只重新匯出 Android 元件；Metro 依原生平台選用對應實作。
 6. 導覽列按鈕、選單與切換檢視（例如美食的熱食部／附近）用 `src/components/header-actions` 的 `HeaderActions`；圖示加在 `src/components/icons.ts`，同時給 SF Symbol 與 Material Symbol。分頁標題下方的一行用 `ListScreen` 的 `subtitle`。
 
 ### 設計原則
