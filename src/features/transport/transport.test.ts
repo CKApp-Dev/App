@@ -39,6 +39,31 @@ describe('YouBike feeds', () => {
 });
 
 describe('Metro feed', () => {
+  const soapResponse = (method: string) =>
+    `<?xml version="1.0" encoding="utf-8"?><soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"><soap:Body><${method}Response xmlns="http://tempuri.org/" /></soap:Body></soap:Envelope>`;
+
+  test.each(['getTrackInfo', 'getCarWeightByInfoEx'])('reads JSON before the live %s SOAP trailer', (method) => {
+    const records = [{ TrainNumber: '201', StationName: '西門站' }];
+    expect(parseEmbeddedArray(JSON.stringify(records) + soapResponse(method))).toEqual(records);
+    expect(parseEmbeddedArray('[]' + soapResponse(method))).toEqual([]);
+  });
+
+  test('reads plain JSON and ignores brackets and XML markers inside escaped JSON strings', () => {
+    const records = [{ StationName: 'A ] [ "quoted" \\ <?xml', nested: [[1, 2], []] }];
+    expect(parseEmbeddedArray(JSON.stringify(records))).toEqual(records);
+    expect(parseEmbeddedArray('\uFEFF \n' + JSON.stringify(records) + '\n' + soapResponse('getTrackInfo'))).toEqual(records);
+  });
+
+  test('rejects incomplete JSON, arbitrary trailing text, and trailing SOAP faults', () => {
+    const fault = '<soap:Envelope><soap:Body><soap:Fault><faultstring>Invalid account</faultstring></soap:Fault></soap:Body></soap:Envelope>';
+    expect(() => parseEmbeddedArray('[{"StationName":"A"}')).toThrow();
+    expect(() => parseEmbeddedArray('[{"StationName":}]')).toThrow();
+    expect(() => parseEmbeddedArray('[] unexpected text')).toThrow();
+    expect(() => parseEmbeddedArray('[]<soap:Envelope>')).toThrow();
+    expect(() => parseEmbeddedArray('[]' + fault)).toThrow();
+    expect(() => parseEmbeddedArray('[]' + soapResponse('getTrackInfo') + '<garbage/>')).toThrow();
+  });
+
   test('extracts SOAP JSON with escaped names and distinguishes a valid empty feed from a fault', () => {
     const soap = '<soap:Envelope><soap:Body><getTrackInfoResponse><getTrackInfoResult>[{&quot;StationName&quot;:&quot;A &amp; B&quot;}]</getTrackInfoResult></getTrackInfoResponse></soap:Body></soap:Envelope>';
     expect(parseEmbeddedArray(soap)).toEqual([{ StationName: 'A & B' }]);
