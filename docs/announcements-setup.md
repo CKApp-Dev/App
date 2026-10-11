@@ -2,28 +2,29 @@
 
 The home screen reads published announcements from the supplied Firebase
 project, `ck-app-database`. Administrators use the separate
-[admin project](https://github.com/ChrisSun0731/CK-App-Admin)
-to save drafts or schedule a release in **Asia/Taipei**. A GitHub Actions worker
-publishes due entries and sends remote system notifications even when CK APP
-is closed. It checks about every five minutes; GitHub can delay or drop runs,
-and additional operating-system/provider delays are possible. This deployment
-uses Firestore and Authentication without Cloud Functions or Blaze billing.
+[admin project](https://github.com/CKApp-Dev/Notification)
+to save drafts or schedule a release in **Asia/Taipei**. Configure the GitHub
+Actions worker to publish due entries and send remote system notifications even
+when CK APP is closed. Once configured, it checks about every five minutes;
+GitHub can delay or drop runs, and additional operating-system/provider delays
+are possible. This setup uses Firestore and Authentication without Cloud
+Functions or Blaze billing.
 
 ## Projects
 
 | Project | Source | Purpose |
 | --- | --- | --- |
 | Expo mobile app | repository root | Published feed, detail, unread state, notification permission and tap routing |
-| Admin website | [CK-App-Admin repository root](https://github.com/ChrisSun0731/CK-App-Admin) | Google sign-in, owner-managed account invitations, authoring, preview, scheduling, archive |
-| Firebase / Actions worker | [CK-App-Admin `firebase/`](https://github.com/ChrisSun0731/CK-App-Admin/tree/main/firebase) | Rules, indexes, server publication, push delivery and receipts |
+| Admin website | [Notification repository root](https://github.com/CKApp-Dev/Notification) | Google sign-in, owner-managed account invitations, authoring, preview, scheduling, archive |
+| Firebase / Actions worker | [Notification `firebase/`](https://github.com/CKApp-Dev/Notification/tree/main/firebase) | Rules, indexes, server publication, push delivery and receipts |
 
 The admin website, backend, deployment workflows, and their tests are maintained
-in `ChrisSun0731/CK-App-Admin`. This repository contains the mobile app and its
+in `CKApp-Dev/Notification`. This repository contains the mobile app and its
 public configuration.
 
 The mobile app's public Firebase configuration lives in
 `config/firebase.public.json`; the admin repository has its own
-[`src/firebase-config.json`](https://github.com/ChrisSun0731/CK-App-Admin/blob/main/src/firebase-config.json).
+[`src/firebase-config.json`](https://github.com/CKApp-Dev/Notification/blob/main/src/firebase-config.json).
 These identify the existing Firebase web app; they do not authorize
 administrators. Never add service-account keys or OAuth tokens to either
 frontend. Google sign-in alone grants no publishing access.
@@ -31,26 +32,28 @@ frontend. Google sign-in alone grants no publishing access.
 ## Backend setup
 
 1. In Firebase console, initialize Authentication and enable **Google** and
-   **Anonymous** sign-in. Set the Google provider's support email. Add the
-   deployed admin site's host to authorized domains. The mobile app uses
+   **Anonymous** sign-in. Set the Google provider's support email. Add
+   `notification.cksc.tw` to authorized domains. The mobile app uses
    Anonymous sign-in to register each device for notifications.
 2. From the separate admin repository, deploy rules/indexes and configure the
    GitHub Actions worker following its
-   [backend guide](https://github.com/ChrisSun0731/CK-App-Admin/blob/main/firebase/README.md).
+   [backend guide](https://github.com/CKApp-Dev/Notification/blob/main/firebase/README.md).
    The worker uses short-lived Google credentials through Workload Identity
    Federation. No service-account key is committed. Existing Firestore data is
    retained; private legacy collections remain unavailable to clients under
    the default-deny rules.
 3. Follow that repository's
-   [administrator setup](https://github.com/ChrisSun0731/CK-App-Admin#readme)
+   [administrator setup](https://github.com/CKApp-Dev/Notification#readme)
    to grant an owner access and invite announcement authors.
 
 The standalone admin source and worker are published in
-[ChrisSun0731/CK-App-Admin](https://github.com/ChrisSun0731/CK-App-Admin).
-The [admin website](https://chrissun0731.github.io/CK-App-Admin/) runs on GitHub
-Pages, and Actions runs the worker. Public repositories automatically disable scheduled workflows after
-60 days without repository activity, so monitor the worker and re-enable it
-if needed. Manual workflow dispatch provides an immediate retry.
+[CKApp-Dev/Notification](https://github.com/CKApp-Dev/Notification).
+The [admin website](https://notification.cksc.tw) uses the `notification.cksc.tw`
+domain. Configure Firebase authorized domains and the Actions worker separately;
+deploying the website does not activate publication or push delivery. Public
+repositories automatically disable scheduled workflows after 60 days without
+repository activity, so monitor the worker and re-enable it if needed. Manual
+workflow dispatch provides an immediate retry once the worker is configured.
 
 ## Native push setup
 
@@ -84,7 +87,7 @@ if needed. Manual workflow dispatch provides an immediate retry.
    physical Android and iOS devices.
 5. If Expo push access protection is enabled, configure the backend secret in
    the admin repository as described in its
-   [backend guide](https://github.com/ChrisSun0731/CK-App-Admin/blob/main/firebase/README.md).
+   [backend guide](https://github.com/CKApp-Dev/Notification/blob/main/firebase/README.md).
    Otherwise leave the flag unset.
 
 The user explicitly opts in from Settings → 公告通知. Startup never opens a
