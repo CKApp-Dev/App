@@ -1,0 +1,9 @@
+.firebaserc
+worker/node_modules/
+worker/lib/
+node_modules/
+*-debug.log
+*.local
+.env*
+!.env.example
+gha-creds-*.json

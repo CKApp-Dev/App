@@ -1,0 +1,68 @@
+{
+  "project_info": {
+    "project_number": "253500838094",
+    "project_id": "ck-app-database",
+    "storage_bucket": "ck-app-database.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:253500838094:android:65e46be897abece7b8c09f",
+        "android_client_info": {
+          "package_name": "org.capacitor.quasar.ckapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "253500838094-29jda1710rljftb4g8vqo6a6c73ns1g3.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDn84xkD4qenuOFF6KwmI5KZdNFgTyvjVk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "253500838094-29jda1710rljftb4g8vqo6a6c73ns1g3.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:253500838094:android:01e30230967d2184b8c09f",
+        "android_client_info": {
+          "package_name": "org.capacitor.quasar.ckapp.dev"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "253500838094-29jda1710rljftb4g8vqo6a6c73ns1g3.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDn84xkD4qenuOFF6KwmI5KZdNFgTyvjVk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "253500838094-29jda1710rljftb4g8vqo6a6c73ns1g3.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

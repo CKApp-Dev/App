@@ -6,6 +6,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useColorScheme } from 'react-native';
 
 import { LegacyImporter } from '@/features/legacy-import/legacy-importer';
+import { NotificationRuntime } from '@/features/announcements/push';
 import { isAttemptingLegacyImport, startLegacyImport } from '@/features/legacy-import/session';
 import { queryClient } from '@/lib/query-client';
 import { useStackScreenOptions } from '@/navigation/stack-options';
@@ -57,7 +58,10 @@ export default function RootLayout() {
           <Stack.Screen name="metro-picker" options={{ presentation: 'modal', title: '新增捷運車站' }} />
           <Stack.Screen name="youbike-rename" options={{ presentation: 'modal', title: '修改站點暱稱' }} />
           <Stack.Screen name="restaurant" options={{ presentation: 'modal', title: '餐廳資訊' }} />
+          <Stack.Screen name="announcements/index" options={{ title: '公告' }} />
+          <Stack.Screen name="announcements/[id]" options={{ title: '公告內容' }} />
         </Stack>
+        <NotificationRuntime />
       </ThemeProvider>
     </QueryClientProvider>}
     {reading && <LegacyImporter onSplashOver={splashOver} onSettled={settled} />}

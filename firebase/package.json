@@ -1,0 +1,13 @@
+{
+  "name": "ck-announcements-backend",
+  "private": true,
+  "scripts": {
+    "build": "npm --prefix worker run build",
+    "test": "npm --prefix worker test",
+    "test:emulator": "npm run build && firebase emulators:exec --project demo-ck-announcements --only firestore 'npm --prefix worker run test:integration'",
+    "grant-admin": "node scripts/grant-admin.mjs"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  }
+}

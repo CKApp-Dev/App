@@ -16,6 +16,8 @@ jobs:
     env:
       CI: '1'
       BUILD_NUMBER: ${{ github.run_number }}
+      EAS_PROJECT_ID: ${{ vars.EAS_PROJECT_ID }}
+      IOS_PUSH_ENVIRONMENT: production
       IOS_TEAM_ID: FJX3SGU9AL
       IOS_PROFILE_NAME: Github Actions
     steps:
@@ -92,9 +94,14 @@ jobs:
           PROFILE_NAME="$(/usr/libexec/PlistBuddy -c 'Print :Name' "$RUNNER_TEMP/profile.plist")"
           PROFILE_TEAM="$(/usr/libexec/PlistBuddy -c 'Print :TeamIdentifier:0' "$RUNNER_TEMP/profile.plist")"
           PROFILE_APP="$(/usr/libexec/PlistBuddy -c 'Print :Entitlements:application-identifier' "$RUNNER_TEMP/profile.plist")"
+          PROFILE_PUSH_ENVIRONMENT="$(/usr/libexec/PlistBuddy -c 'Print :Entitlements:aps-environment' "$RUNNER_TEMP/profile.plist" 2>/dev/null || true)"
           test "$PROFILE_NAME" = "$IOS_PROFILE_NAME"
           test "$PROFILE_TEAM" = "$IOS_TEAM_ID"
           test "$PROFILE_APP" = "${IOS_TEAM_ID}.org.capacitor.quasar.ckapp"
+          if [ "$PROFILE_PUSH_ENVIRONMENT" != "$IOS_PUSH_ENVIRONMENT" ]; then
+            echo '::error::The distribution provisioning profile must include the production APNs entitlement. Enable Push Notifications on the Apple app identifier, regenerate the profile, and update BUILD_PROVISION_PROFILE_BASE64.'
+            exit 1
+          fi
           SIGNING_IDENTITY="$(security find-identity -v -p codesigning "$KEYCHAIN_PATH" | awk '/Apple Distribution|iPhone Distribution/ { print $2; exit }')"
           test -n "$SIGNING_IDENTITY"
           mkdir -p "$HOME/Library/MobileDevice/Provisioning Profiles"

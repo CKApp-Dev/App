@@ -3,6 +3,7 @@ import { router } from 'expo-router';
 import { Alert } from 'react-native';
 
 import { HeaderActions } from '@/components/header-actions';
+import { NotificationSettings } from '@/features/announcements/notification-settings';
 import { useTimetables } from '@/features/schedule/use-timetables';
 import { GRADE_LABELS, gradeOfClass } from '@/features/todo/school-days';
 import { doneHeader } from '@/features/todo/editor-header';
@@ -118,6 +119,8 @@ export default function SettingsScreen() {
             onValueChange={setCalendarGradeOnly}
           />
         </Section>
+
+        <NotificationSettings />
 
         <Section title="資料" footer="會清除課表修改、待辦、最愛與常用站點，無法復原。下載的校務資料與網站登入會保留。">
           <ButtonRow label="重設個人資料與設定" role="destructive" onPress={confirmReset} />

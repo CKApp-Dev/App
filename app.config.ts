@@ -1,6 +1,8 @@
 import type { ConfigContext, ExpoConfig } from 'expo/config';
 
 import pkg from './package.json';
+import firebaseConfig from './config/firebase.public.json';
+import expoProject from './config/expo-project.json';
 
 // Values that differ per build come from the environment. Locally, Expo CLI
 // loads them from `.env.local` (see `.env.example`); in CI they come from the
@@ -19,6 +21,13 @@ const buildNumber = process.env.BUILD_NUMBER || '1';
 // prebuild. See docs/design/native-ui.md, "Widgets".
 const widgets = process.env.ENABLE_WIDGETS === '1';
 
+// Local device builds use APNs sandbox; the signed release workflow sets
+// production to match its Apple Distribution provisioning profile.
+const iosPushEnvironment = process.env.IOS_PUSH_ENVIRONMENT || 'development';
+if (iosPushEnvironment !== 'development' && iosPushEnvironment !== 'production') {
+  throw new Error('IOS_PUSH_ENVIRONMENT must be development or production.');
+}
+
 // The store identity is inherited from the original Capacitor app. Changing it
 // would publish a brand-new app instead of an update to the existing one.
 const APP_ID = 'org.capacitor.quasar.ckapp';
@@ -27,6 +36,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: 'CK APP',
   slug: 'ck-app',
+  owner: expoProject.owner,
   version,
   platforms: ['ios', 'android'],
   scheme: 'ckapp',
@@ -45,6 +55,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
   android: {
     package: APP_ID,
+    googleServicesFile: process.env.GOOGLE_SERVICES_JSON || './config/google-services.json',
     versionCode: Number(buildNumber),
     adaptiveIcon: {
       foregroundImage: './assets/images/android-icon-foreground.png',
@@ -69,6 +80,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       },
     ],
     'expo-sqlite',
+    ['expo-notifications', { defaultChannel: 'announcements', mode: iosPushEnvironment, enableBackgroundRemoteNotifications: false }],
     // SDK 57 opts into scenes so builds made with Xcode 27 launch on iOS 27.
     ['expo-build-properties', { ios: { enableSceneSupport: true } }],
     ...(widgets
@@ -93,6 +105,16 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       : []),
   ],
   extra: {
+    // Firebase web configuration identifies the project; authorization is
+    // enforced by firebase/firestore.rules, never by hiding these values.
+    firebase: {
+      ...firebaseConfig,
+      apiKey: process.env.FIREBASE_API_KEY || firebaseConfig.apiKey,
+      authDomain: process.env.FIREBASE_AUTH_DOMAIN || firebaseConfig.authDomain,
+      projectId: process.env.FIREBASE_PROJECT_ID || firebaseConfig.projectId,
+      appId: process.env.FIREBASE_APP_ID || firebaseConfig.appId,
+    },
+    eas: { projectId: process.env.EAS_PROJECT_ID || expoProject.projectId },
     googleMapsConfigured: Boolean(process.env.GOOGLE_MAPS_API_KEY),
     // Taipei Metro (api.metro.taipei) account for the 交通 page. A client-only
     // app ships whatever value is configured, exactly as the Quasar build did;

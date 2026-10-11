@@ -16,6 +16,7 @@ jobs:
     env:
       CI: '1'
       BUILD_NUMBER: ${{ github.run_number }}
+      EAS_PROJECT_ID: ${{ vars.EAS_PROJECT_ID }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
@@ -75,7 +76,14 @@ jobs:
           METRO_API_USER: ${{ secrets.METRO_API_USER }}
           METRO_API_PASS: ${{ secrets.METRO_API_PASS }}
           GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
-        run: npx expo prebuild --platform android --no-install
+          FIREBASE_GOOGLE_SERVICES_JSON: ${{ secrets.FIREBASE_GOOGLE_SERVICES_JSON }}
+        run: |
+          if [ -n "$FIREBASE_GOOGLE_SERVICES_JSON" ]; then
+            printf '%s' "$FIREBASE_GOOGLE_SERVICES_JSON" > "$RUNNER_TEMP/google-services.json"
+            export GOOGLE_SERVICES_JSON="$RUNNER_TEMP/google-services.json"
+            echo "GOOGLE_SERVICES_JSON=$GOOGLE_SERVICES_JSON" >> "$GITHUB_ENV"
+          fi
+          npx expo prebuild --platform android --no-install
 
       - name: Prepare release signing
         env:
