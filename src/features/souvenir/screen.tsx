@@ -12,7 +12,9 @@ import { openWebsite } from "@/lib/open-link";
 import { usePalette } from "@/theme/palette";
 import { EmptyState, ListScreen, Section } from "@/ui";
 
-const STORE_URL = "https://souvenir.cksc.tw/auth";
+// Start at the homepage: GitHub Pages returns 404 for direct client routes,
+// and the current shop no longer has the old /auth route.
+const STORE_URL = "https://souvenir.cksc.tw/";
 
 const isWebUrl = (url: string) => /^https?:\/\//i.test(url);
 
