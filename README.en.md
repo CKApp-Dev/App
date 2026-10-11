@@ -58,7 +58,7 @@ The settings reset restores personal stores/settings and clears in-memory query 
 
 ## Development
 
-Install Node.js 22+ and Yarn Classic. Android needs Android Studio / SDK and Java 21. iOS needs macOS, Xcode, and CocoaPods. Current SDK 57 native defaults are Android API 24+ and iOS 16.4+.
+Install Node.js 24.12.0+ and Yarn Classic. Android needs Android Studio / SDK and Java 21. iOS needs macOS, Xcode, and CocoaPods. Current SDK 57 native defaults are Android API 24+ and iOS 16.4+.
 
 ```bash
 git clone https://github.com/CK-APP-Org/CK_app.git

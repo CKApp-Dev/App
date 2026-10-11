@@ -58,7 +58,7 @@ CK APP 是建中第 77 屆學生彭可翰和楊晨諺於 2024 年開發的校園
 
 ## 開發
 
-需要 Node.js 22+ 與 Yarn Classic。Android 需要 Android Studio／SDK 與 Java 21；iOS 需要 macOS、Xcode 與 CocoaPods。SDK 57 目前原生預設為 Android API 24+、iOS 16.4+。
+需要 Node.js 24.12.0+ 與 Yarn Classic。Android 需要 Android Studio／SDK 與 Java 21；iOS 需要 macOS、Xcode 與 CocoaPods。SDK 57 目前原生預設為 Android API 24+、iOS 16.4+。
 
 ```bash
 git clone https://github.com/CK-APP-Org/CK_app.git

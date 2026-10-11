@@ -40,7 +40,7 @@ export interface ListScreenProps {
   /**
    * Shows the refresh indicator without a pull, e.g. while a header 重新整理
    * button's refresh runs; for screens that also pass `onRefresh`. Android
-   * and the fallback show pull to refresh's own indicator. SwiftUI cannot
+   * shows pull to refresh's own indicator. SwiftUI cannot
    * start `refreshable`'s spinner from code, so iOS shows a spinner row above
    * the first section instead (not during a pull, which has its own).
    */
@@ -554,7 +554,7 @@ export interface Kit {
    * Whether the text is so large that columns side by side should stack, as
    * for a screen that swaps a grid for a list: the accessibility text sizes
    * on iOS (SwiftUI's isAccessibilitySize), a font scale of 1.5 or more on
-   * Android and elsewhere.
+   * Android.
    */
   useAccessibilityTextSize: () => boolean;
 }

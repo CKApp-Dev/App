@@ -39,7 +39,7 @@ src/ui/
   index.ts                 re-exports `./kit` (platform-resolved) and types
   kit.ios.tsx              SwiftUI implementation
   kit.android.tsx          Compose Material 3 implementation
-  kit.tsx                  fallback (web/tests) — plain React Native views
+  kit.tsx                  TypeScript entry — re-exports `./kit.android`
   labels.ts                shared spoken labels (e.g. 「<row>」的更多選項)
   use-synced-text.ts       shared helper: native text state <-> React state
   ios/use-snap-back.ts     SwiftUI pickers always show `value`
@@ -52,6 +52,10 @@ actions + a context menu on iOS and an overflow menu on Android). A screen may
 still add `screen.ios.tsx` / `screen.android.tsx` when the platforms need a
 genuinely different layout, but sharing is the default.
 
+Metro selects `kit.ios.tsx` or `kit.android.tsx` for native builds. The
+`kit.tsx` entry lets TypeScript resolve the shared exports through the Android
+implementation; it has no separate UI implementation.
+
 Row states the kits share:
 
 - `disabled` on `Row` / `ToggleRow` turns off the row's own tap or switch and
@@ -61,11 +65,11 @@ Row states the kits share:
   swipe buttons). On a disabled iOS row a full swipe only reveals the swipe
   buttons instead of firing the edge one.
 - Android's overflow button is spoken as `「<title>」的更多選項`, so TalkBack can
-  tell rows apart (the fallback kit does the same). iOS has no visible
+  tell rows apart. iOS has no visible
   trigger: the actions live in the swipe actions and long-press menu of a row
   that VoiceOver reads by its title.
 - `ListScreen.refreshing` shows refresh progress the screen started itself
-  (a header 重新整理 button). Android and the fallback show pull to refresh's
+  (a header 重新整理 button). Android shows pull to refresh's
   own indicator; SwiftUI cannot start `refreshable`'s spinner from code, so
   iOS shows a spinner row above the first section while no pull is running.
 - `MonthCalendar` draws at most `CALENDAR_CELL_INDICATORS` (3, from

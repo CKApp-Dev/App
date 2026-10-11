@@ -106,7 +106,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ],
   extra: {
     // Firebase web configuration identifies the project; authorization is
-    // enforced by firebase/firestore.rules, never by hiding these values.
+    // enforced by Firestore rules in CK-App-Admin, never by hiding these values.
     firebase: {
       ...firebaseConfig,
       apiKey: process.env.FIREBASE_API_KEY || firebaseConfig.apiKey,
