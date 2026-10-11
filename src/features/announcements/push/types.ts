@@ -8,6 +8,7 @@ export interface DeviceRegistration {
 
 export interface PushPreferences {
   optedIn: boolean;
+  automaticPermissionHandled: boolean;
   registration: DeviceRegistration | null;
   pendingDisable: DeviceRegistration[];
 }
@@ -32,13 +33,21 @@ function validRegistration(value: unknown): value is DeviceRegistration {
     && (entry.platform === 'ios' || entry.platform === 'android');
 }
 
-/** Invalid persisted data must never turn notifications on or become a Firestore path. */
+export function initialPushPreferences(): PushPreferences {
+  return { optedIn: true, automaticPermissionHandled: false, registration: null, pendingDisable: [] };
+}
+
+/** Fresh installs opt in; saved choices and invalid persisted data never prompt again. */
 export function restorePushPreferences(value: unknown): PushPreferences {
+  if (value === undefined) return initialPushPreferences();
   const saved = value && typeof value === 'object' ? value as Partial<PushPreferences> : {};
   const registration = validRegistration(saved.registration) ? saved.registration : null;
   const pendingDisable = Array.isArray(saved.pendingDisable)
     ? saved.pendingDisable.filter(validRegistration).filter((entry, index, all) => all.findIndex((other) => other.uid === entry.uid) === index)
     : [];
   const optedIn = saved.optedIn === true;
-  return { optedIn, registration, pendingDisable };
+  // Records written before automatic setup had an explicit opt-in choice.
+  // Missing/invalid flags preserve that choice without a new startup prompt.
+  const automaticPermissionHandled = !optedIn || saved.automaticPermissionHandled !== false;
+  return { optedIn, automaticPermissionHandled, registration, pendingDisable };
 }

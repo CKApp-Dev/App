@@ -18,21 +18,42 @@ describe('notification destination', () => {
 });
 
 describe('restoring push preferences', () => {
+  test('a fresh install enables automatic permission setup', () => {
+    expect(restorePushPreferences(undefined)).toEqual({
+      optedIn: true, automaticPermissionHandled: false, registration: null, pendingDisable: [],
+    });
+  });
+
   test('a malformed preference cannot silently opt the device in', () => {
     expect(restorePushPreferences({ optedIn: 'true', registration: { uid: '../admin' }, pendingDisable: [null] })).toEqual({
-      optedIn: false, registration: null, pendingDisable: [],
+      optedIn: false, automaticPermissionHandled: true, registration: null, pendingDisable: [],
     });
   });
 
   test('preserves an offline disable without restoring consent', () => {
     const registration = { uid: 'device_123', expoPushToken: 'ExpoPushToken[test-token]', platform: 'ios' };
     expect(restorePushPreferences({ optedIn: false, registration, pendingDisable: [registration, registration] })).toEqual({
-      optedIn: false, registration, pendingDisable: [registration],
+      optedIn: false, automaticPermissionHandled: true, registration, pendingDisable: [registration],
     });
   });
 
   test('an acknowledged disable does not become pending again on every launch', () => {
     const registration = { uid: 'device_123', expoPushToken: 'ExponentPushToken[test-token]', platform: 'android' };
     expect(restorePushPreferences({ optedIn: false, registration, pendingDisable: [] }).pendingDisable).toEqual([]);
+  });
+
+  test('legacy enabled preferences do not trigger a new automatic prompt', () => {
+    expect(restorePushPreferences({ optedIn: true })).toMatchObject({
+      optedIn: true, automaticPermissionHandled: true,
+    });
+  });
+
+  test('pending automatic setup survives a restart without changing a saved opt-out', () => {
+    expect(restorePushPreferences({ optedIn: true, automaticPermissionHandled: false })).toMatchObject({
+      optedIn: true, automaticPermissionHandled: false,
+    });
+    expect(restorePushPreferences({ optedIn: false, automaticPermissionHandled: false })).toMatchObject({
+      optedIn: false, automaticPermissionHandled: true,
+    });
   });
 });
