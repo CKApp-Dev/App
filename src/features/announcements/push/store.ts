@@ -3,12 +3,13 @@ import { persist } from 'zustand/middleware';
 
 import { persistStorage } from '@/lib/storage';
 
-import { restorePushPreferences, type DeviceRegistration, type PushPreferences, type PushStatus } from './types';
+import { initialPushPreferences, restorePushPreferences, type DeviceRegistration, type PushPreferences, type PushStatus } from './types';
 
 export interface PushState extends PushPreferences {
   status: PushStatus;
   error: string | null;
   setOptedIn: (enabled: boolean) => void;
+  markAutomaticPermissionHandled: () => void;
   rememberRegistration: (registration: DeviceRegistration) => void;
   queueDisable: (registration: DeviceRegistration) => void;
   finishDisable: (registration: DeviceRegistration) => void;
@@ -22,19 +23,19 @@ const queue = (entries: DeviceRegistration[], registration: DeviceRegistration) 
 export const usePushStore = create<PushState>()(
   persist(
     (set) => ({
-      optedIn: false,
-      registration: null,
-      pendingDisable: [],
+      ...initialPushPreferences(),
       status: 'disabled',
       error: null,
       setOptedIn: (optedIn) => set((state) => ({
         optedIn,
+        automaticPermissionHandled: true,
         // Persist the obligation before any network call. Keep the token/UID
         // after disabling so a force quit or offline launch can retry it.
         pendingDisable: !optedIn && state.registration
           ? queue(state.pendingDisable, state.registration)
           : state.pendingDisable,
       })),
+      markAutomaticPermissionHandled: () => set({ automaticPermissionHandled: true }),
       rememberRegistration: (registration) => set((state) => ({
         registration,
         pendingDisable: (state.registration && state.registration.uid !== registration.uid
@@ -51,7 +52,10 @@ export const usePushStore = create<PushState>()(
       name: 'ck.announcement-push',
       storage: persistStorage,
       version: 1,
-      partialize: ({ optedIn, registration, pendingDisable }) => ({ optedIn, registration, pendingDisable }),
+      // Keep version 1: missing automaticPermissionHandled means a legacy choice.
+      partialize: ({ optedIn, automaticPermissionHandled, registration, pendingDisable }) => ({
+        optedIn, automaticPermissionHandled, registration, pendingDisable,
+      }),
       merge: (saved, current) => ({ ...current, ...restorePushPreferences(saved) }),
     },
   ),

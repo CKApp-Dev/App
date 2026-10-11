@@ -27,8 +27,6 @@ export function NotificationRuntime() {
   useEffect(() => {
     let mounted = true;
     if (pushAvailability() === 'unsupported') return;
-    void pushController.reconcile();
-
     const response = Notifications.addNotificationResponseReceivedListener((value) => setPendingResponse(value));
     const rotation = Notifications.addPushTokenListener((token) => {
       if ((token.type === 'ios' || token.type === 'android') && typeof token.data === 'string') {
@@ -36,8 +34,11 @@ export function NotificationRuntime() {
       }
     });
     const appState = AppState.addEventListener('change', (state) => {
-      if (state === 'active') void pushController.reconcile();
+      if (state === 'active') void pushController.start();
     });
+    // Request the new-install permission once the app is visible. Background
+    // launches wait for the next active event before showing the OS dialog.
+    if (AppState.currentState === 'active') void pushController.start();
     // A response listener alone misses taps that launch a terminated app.
     void Notifications.getLastNotificationResponseAsync().then((value) => {
       if (mounted && value) setPendingResponse((current) => current ?? value);

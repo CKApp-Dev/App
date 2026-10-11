@@ -1,7 +1,8 @@
 // Live Taipei Metro arrivals and car crowdedness from api.metro.taipei, ported
 // from the Quasar app's MetroSection.vue.
 //
-// The API is SOAP; each response wraps a JSON array inside the XML envelope.
+// The API accepts SOAP requests. Responses either embed JSON in SOAP or send
+// a JSON array followed by an empty SOAP response envelope.
 import Constants from 'expo-constants';
 import { XMLParser } from 'fast-xml-parser';
 
@@ -67,8 +68,50 @@ export function soapEnvelope(method: string, { user, pass }: MetroCredentials): 
 </soap:Envelope>`;
 }
 
-/** Extracts the JSON array embedded in a SOAP response body. */
+/** Finds the end of a leading JSON array without treating brackets in strings as structure. */
+function arrayEnd(body: string): number {
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+  for (let index = 0; index < body.length; index += 1) {
+    const char = body[index];
+    if (inString) {
+      if (escaped) escaped = false;
+      else if (char === '\\') escaped = true;
+      else if (char === '"') inString = false;
+    } else if (char === '"') inString = true;
+    else if (char === '[') depth += 1;
+    else if (char === ']' && --depth === 0) return index + 1;
+  }
+  throw new Error('捷運服務未回傳有效資料');
+}
+
+/** Extracts the JSON array from either Metro response format. */
 export function parseEmbeddedArray<T>(body: string): T[] {
+  const text = body.trim();
+  if (text.startsWith('[')) {
+    const end = arrayEnd(text);
+    const records = JSON.parse(text.slice(0, end)) as T[];
+    const trailing = text.slice(end).trim();
+    if (trailing) {
+      // The live service writes JSON before ASP.NET appends its SOAP envelope.
+      // Validate that suffix rather than accepting arbitrary text or a fault.
+      const soap = new XMLParser({ ignoreAttributes: true, parseTagValue: false, removeNSPrefix: true }).parse(
+        trailing,
+        true,
+      ) as { Envelope?: { Body?: Record<string, unknown> } };
+      const soapBody = soap.Envelope?.Body;
+      const responses = soapBody && typeof soapBody === 'object' ? Object.keys(soapBody) : [];
+      if (
+        Object.keys(soap).some((key) => key !== '?xml' && key !== 'Envelope') ||
+        responses.length !== 1 ||
+        !responses[0].endsWith('Response')
+      ) {
+        throw new Error('捷運服務未回傳有效資料');
+      }
+    }
+    return records;
+  }
   // Parsing the XML also decodes entities in station/destination names. A
   // SOAP fault or rejected account must surface as an error, not an empty
   // list that looks like a successful update.
@@ -85,9 +128,7 @@ export function parseEmbeddedArray<T>(body: string): T[] {
     }
     return null;
   };
-  const value: unknown = body.trim().startsWith('[')
-    ? body
-    : new XMLParser({ ignoreAttributes: true, parseTagValue: false }).parse(body);
+  const value: unknown = new XMLParser({ ignoreAttributes: true, parseTagValue: false }).parse(text);
   const records = findArray(value);
   if (records === null) throw new Error('捷運服務未回傳有效資料');
   return records;

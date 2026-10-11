@@ -14,6 +14,17 @@ export interface PushDependencies {
 /** Kept separate from native APIs so permission and offline races can be tested. */
 export function createPushController(deps: PushDependencies) {
   let revision = 0;
+  let permissionRequest: Promise<boolean> | undefined;
+
+  function requestPermissionOnce() {
+    if (!permissionRequest) {
+      const request = Promise.resolve().then(() => deps.requestPermission());
+      permissionRequest = request;
+      const clear = () => { if (permissionRequest === request) permissionRequest = undefined; };
+      void request.then(clear, clear);
+    }
+    return permissionRequest;
+  }
 
   async function flushDisables() {
     const pending = deps.getState().pendingDisable;
@@ -31,7 +42,7 @@ export function createPushController(deps: PushDependencies) {
     return !failed;
   }
 
-  async function reconcile(requestPermission = false, nativeToken?: NativePushToken) {
+  async function reconcile(permissionMode: 'silent' | 'automatic' | 'explicit' = 'silent', nativeToken?: NativePushToken) {
     const currentRevision = ++revision;
     const current = () => revision === currentRevision;
     const setStatus = (status: PushStatus, error: string | null = null) => {
@@ -47,10 +58,13 @@ export function createPushController(deps: PushDependencies) {
 
     setStatus('busy');
     try {
-      let allowed = await deps.getPermission();
+      // Returning from the OS dialog can start another reconciliation. It must
+      // share the pending permission result rather than cancel registration.
+      let allowed = await (permissionRequest ?? deps.getPermission());
       if (!current() || !deps.getState().optedIn) return;
-      // Only the explicit Enable action can ever request OS permission.
-      if (!allowed && requestPermission) allowed = await deps.requestPermission();
+      const automatic = permissionMode === 'automatic' && !deps.getState().automaticPermissionHandled;
+      if (automatic) deps.getState().markAutomaticPermissionHandled();
+      if (!allowed && (automatic || permissionMode === 'explicit')) allowed = await requestPermissionOnce();
       if (!current() || !deps.getState().optedIn) return;
       if (!allowed) {
         const previous = deps.getState().registration;
@@ -81,15 +95,22 @@ export function createPushController(deps: PushDependencies) {
   }
 
   return {
+    start: () => reconcile('automatic'),
     reconcile: () => reconcile(),
-    refreshToken: (token: NativePushToken) => reconcile(false, token),
+    refreshToken: async (token: NativePushToken) => {
+      // Startup fetches the current token after its permission check. An early
+      // rotation must not cancel that check before the first prompt is shown.
+      const state = deps.getState();
+      if (state.optedIn && !state.automaticPermissionHandled) return;
+      await reconcile('silent', token);
+    },
     enable: async () => {
       if (deps.availability()) {
         deps.getState().setStatus(deps.availability()!);
         return;
       }
       deps.getState().setOptedIn(true);
-      await reconcile(true);
+      await reconcile('explicit');
     },
     disable: async () => {
       ++revision;
