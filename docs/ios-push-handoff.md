@@ -9,7 +9,7 @@ uploaded to the GitHub Actions secrets below. The profiles use the existing CI
 distribution certificate, verified by its public fingerprint. That certificate
 expires at 2026-10-16 00:41 (Asia/Taipei); renew it before then for later builds.
 
-The new iOS build, version `4.0.0 (77)`, was archived, exported, and uploaded to
+The initial iOS push build, version `4.0.0 (77)`, was archived, exported, and uploaded to
 TestFlight successfully from
 `notifications/ios-push-20261011`, commit
 `01be7c7edeff394287383986f1ad51043f451ed4`, in
@@ -19,6 +19,15 @@ iPhone's enabled push registration is verified in Firestore. A single test
 notification arrived while the iPhone was locked, its Expo receipt confirmed
 provider acceptance, and tapping it opened CK APP. The scheduled notification
 publisher is separately blocked by missing Google IAM setup permissions.
+
+The automatic first-entry permission update, version `4.0.0 (78)`, was also
+archived, exported, and uploaded to TestFlight successfully from commit
+`3577ccd2ba0ad4e79bdf268e760c7534b3162aa2` in
+[GitHub Actions run 38139126960](https://github.com/CKApp-Dev/App/actions/runs/38139126960).
+New installs enable notifications by default and show the system permission
+prompt automatically; existing saved choices are preserved. Lint, typecheck,
+and the full test suite passed. The physical delivery/tap test above was on
+build 77; first-entry setup is covered by the controller regression tests.
 
 If another operator needs access later: for an Individual membership, invited
 App Store Connect users do not receive Apple Developer Program team access.
