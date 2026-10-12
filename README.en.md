@@ -116,6 +116,23 @@ If CocoaPods is not installed, follow [CocoaPods setup](https://guides.cocoapods
 
 `yarn start` starts Metro and does not compile native modules. After adding a native dependency, build the app again; an installed binary that lacks that module cannot gain it through JavaScript reloads. See [Expo's local build workflow](https://docs.expo.dev/guides/local-app-development/).
 
+If iOS reports missing `NSLocation*UsageDescription` keys, regenerate the native project before rebuilding. The `expo-location` plugin in `app.config.ts` supplies `NSLocationWhenInUseUsageDescription` for finding nearby YouBike and Metro stations; an existing `ios/` project can still contain an older `Info.plist`.
+
+```bash
+npx expo prebuild --platform ios
+yarn ios --device
+```
+
+Reloading Metro cannot apply permission descriptions to an installed app. See [Expo's iOS permissions guide](https://docs.expo.dev/guides/permissions/#ios).
+
+If `getCurrentPositionAsync` reports `LocationUnavailable` / `kCLErrorDomain error 0` in the simulator, supply a simulated location and retry **尋找附近站點**. For a test location near CK:
+
+```bash
+xcrun simctl location booted set 25.031204,121.515966
+```
+
+The simulator needs location data in addition to permission. See [Expo's simulator location setup](https://docs.expo.dev/versions/v57.0.0/sdk/location/#ios-simulator).
+
 ### iPhone widget
 
 iOS builds include the 現在 widget by default. If an older build does not show CK APP in the widget gallery, regenerate the iOS project and reinstall a native build:

@@ -27,7 +27,10 @@ export const TABS = [
 /** The screens 校園 pushes, by route name under src/app/(tabs)/campus. */
 export const CAMPUS_SCREENS = [
   { name: 'news', title: '校網' },
-  { name: 'transport', title: '交通' },
+  { name: 'transport/index', title: '交通' },
+  { name: 'transport/nearby', title: '附近交通' },
+  { name: 'transport/youbike', title: 'YouBike' },
+  { name: 'transport/metro', title: '捷運' },
   { name: 'promo', title: '建北特約' },
   { name: 'souvenir', title: '校慶紀念品' },
   { name: 'tickets', title: '建中舞會門票' },

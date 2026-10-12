@@ -60,7 +60,7 @@ export interface MetroLive {
   refetch: () => Promise<unknown>;
 }
 
-/** Live arrivals and car crowding, fetched while `needed` (stations are followed). */
+/** Live arrivals and car crowding, fetched while `needed` for nearby or followed stations. */
 export function useMetroLive(needed: boolean, { poll = true, pollMs = POLL_MS, staleMs = STALE_MS }: PollOptions = {}): MetroLive {
   const focused = useIsFocused();
   const configured = hasMetroCredentials();

@@ -116,6 +116,23 @@ export PATH="$(ruby -r rubygems -e 'puts Gem.user_dir')/bin:$PATH"
 
 `yarn start` 只啟動 Metro，不會編譯原生模組。新增原生依賴後須重新編譯 App；JavaScript 重新載入無法替已安裝的 App 加入缺少的原生模組。參考 [Expo 本機建置流程](https://docs.expo.dev/guides/local-app-development/)。
 
+若 iOS 回報缺少 `NSLocation*UsageDescription`，請先重新產生原生專案，再重新編譯。`app.config.ts` 中的 `expo-location` 外掛已設定 `NSLocationWhenInUseUsageDescription`，用於尋找附近的 YouBike 與捷運站；既有 `ios/` 專案的 `Info.plist` 仍可能是舊版本。
+
+```bash
+npx expo prebuild --platform ios
+yarn ios --device
+```
+
+重新載入 Metro 無法更新已安裝 App 的權限說明。參考 [Expo iOS 權限說明](https://docs.expo.dev/guides/permissions/#ios)。
+
+若模擬器的 `getCurrentPositionAsync` 回報 `LocationUnavailable`／`kCLErrorDomain error 0`，請提供模擬位置後，再點選「尋找附近站點」。以下設定為建中附近的測試座標：
+
+```bash
+xcrun simctl location booted set 25.031204,121.515966
+```
+
+模擬器除了定位權限，也需要位置資料。參考 [Expo 模擬器定位設定](https://docs.expo.dev/versions/v57.0.0/sdk/location/#ios-simulator)。
+
 ### iPhone 小工具
 
 iOS 建置預設包含「現在」小工具。若舊建置的加入小工具列表沒有 CK APP，請重新產生 iOS 專案並安裝原生建置：

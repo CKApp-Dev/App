@@ -2,6 +2,7 @@ import { describe, expect, jest, test } from '@jest/globals';
 
 import { parseEmbeddedArray, parseCountdown, soapEnvelope, trainLineColor } from './metro';
 import { linesOfStation, METRO_LINE_COLORS } from './metro-lines';
+import { nearestMetroStation } from './metro-stations';
 import { availabilityLevel, CK_COORDINATE, nearestStations, normalizeNtc, normalizeTpc, parseStationTime } from './youbike';
 
 jest.mock('expo-constants', () => ({ __esModule: true, default: { expoConfig: { extra: {} } } }));
@@ -87,5 +88,11 @@ describe('Metro feed', () => {
     expect(linesOfStation('景安')).toEqual(['O', 'Y']);
     expect(trainLineColor('南港展覽館站', '忠孝復興', '')).toBe(METRO_LINE_COLORS.BR);
     expect(trainLineColor('南港展覽館站', '忠孝復興', '123')).toBe(METRO_LINE_COLORS.BL);
+  });
+
+  test('finds the nearest metro station from a coordinate', () => {
+    const station = nearestMetroStation(25.031204, 121.515966);
+    expect(station?.name).toBe('中正紀念堂');
+    expect(station?.distanceKm).toBeLessThan(1);
   });
 });

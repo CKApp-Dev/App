@@ -82,6 +82,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       },
     ],
     'expo-sqlite',
+    ['expo-location', { locationWhenInUsePermission: '用於顯示您附近的 YouBike 與捷運站。' }],
     ['expo-notifications', { defaultChannel: 'announcements', mode: iosPushEnvironment, enableBackgroundRemoteNotifications: false }],
     // SDK 57 opts into scenes so builds made with Xcode 27 launch on iOS 27.
     [
