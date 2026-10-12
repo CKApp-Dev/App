@@ -55,11 +55,13 @@ export default function RootLayout() {
           <Stack.Screen name="event-editor" options={{ presentation: 'modal', title: '活動' }} />
           <Stack.Screen name="todo-editor" options={{ presentation: 'modal', title: '待辦事項' }} />
           <Stack.Screen name="schedule-editor" options={{ presentation: 'modal', title: '編輯課程' }} />
+          <Stack.Screen name="schedule-day" options={{ title: '每日課表' }} />
           <Stack.Screen name="categories" options={{ presentation: 'modal', title: '類別管理' }} />
           <Stack.Screen name="youbike-picker" options={{ presentation: 'modal', title: '新增 YouBike 站點' }} />
           <Stack.Screen name="metro-picker" options={{ presentation: 'modal', title: '新增捷運車站' }} />
           <Stack.Screen name="youbike-rename" options={{ presentation: 'modal', title: '修改站點暱稱' }} />
           <Stack.Screen name="restaurant" options={{ presentation: 'modal', title: '餐廳資訊' }} />
+          <Stack.Screen name="food-map" options={{ presentation: 'fullScreenModal', title: '美食地圖' }} />
           <Stack.Screen name="announcements/index" options={{ title: '公告' }} />
           <Stack.Screen name="announcements/[id]" options={{ title: '公告內容' }} />
         </Stack>

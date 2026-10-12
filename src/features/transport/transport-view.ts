@@ -49,7 +49,7 @@ export function stationKey(station: { city: City; sna: string }): string {
   return `${station.city}:${station.sna}`;
 }
 
-/** The cities `stations` are in, in CITIES order: the only feeds 交通 fetches. */
+/** The cities `stations` are in, in CITIES order. */
 export function citiesOf(stations: readonly { city: City }[]): City[] {
   return CITIES.filter((city) => stations.some((station) => station.city === city));
 }
@@ -234,8 +234,8 @@ export interface MetroNotices {
 
 /**
  * The notices above the Metro stations. Failures are reported only while
- * stations are followed: with none, nothing is fetched, so an old error
- * would stay on screen and retrying could not clear it.
+ * nearby or followed stations are requested: with none, nothing is fetched,
+ * so an old error would stay on screen and retrying could not clear it.
  */
 export function metroNotices(state: {
   configured: boolean;

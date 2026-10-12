@@ -118,6 +118,12 @@ export default function ScheduleScreen() {
   if (original) {
     menu.push({ key: 'reimport', label: '重新匯入課表', icon: icons.restore, onPress: confirmReimport });
   }
+  menu.unshift({
+    key: 'daily',
+    label: '每日課表',
+    icon: icons.calendar,
+    onPress: () => router.push('../schedule-day'),
+  });
 
   return (
     <>

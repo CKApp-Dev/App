@@ -344,20 +344,33 @@ remote data.
   existing hints.
 
 ### 交通 (Transport)
-- Header: refresh icon (greyed while a refresh runs, with progress shown via
-  `ListScreen.refreshing`); `+` menu (YouBike 站點 / 捷運車站); Android FAB
-  新增站點 opens the same choice (menu on the header is enough; FAB → YouBike
-  picker).
-- Section "YouBike 站點" (footer: 約每 10 秒更新 · 站點更新 HH:MM:SS): one
-  `Row` per followed station: title nickname, subtitle `城市 · 站名`,
+- `/campus/transport` is a hub with three `Row`s, each pushing its own
+  subpage: 附近交通 (`/campus/transport/nearby`), YouBike
+  (`/campus/transport/youbike`) and 捷運 (`/campus/transport/metro`). The hub
+  does not request location or fetch live transport data.
+- Each subpage has a refresh icon (greyed while a refresh runs, with progress
+  shown via `ListScreen.refreshing`) and pull-to-refresh. Live feeds poll
+  about every 10 seconds only while the page using them is focused; opening
+  a picker or leaving the page stops its polling. Pages share cached feeds.
+- 附近交通: 尋找附近站點 / 重新定位 requests location on demand;
+  shows the three nearest YouBike stations with availability and distance,
+  plus the nearest Metro station with the same live arrivals, countdowns and
+  crowding as followed stations. Nearby feeds start after location is obtained
+  and run only while this page is focused; location is not tracked continuously.
+- YouBike: header `+` and Android FAB 新增 YouBike 站點 open
+  `/youbike-picker`. Section "YouBike 站點" (footer: 約每 10 秒更新 ·
+  站點更新 HH:MM:SS): one `Row` per followed station: title nickname, subtitle `城市 · 站名`,
   footer `MetricPills` 可借 N / 可還 N with availability colours, status
   text when loading/error/no data; actions 修改暱稱 (→ `/youbike-rename`) and
   移除站點 (destructive). Empty → `EmptyState` 尚未加入站點… with action.
-- Section "捷運車站" (footer: crowding legend + 到站資訊更新 time): per station
-  a `Row` header (title station, subtitle line names with line-colour dots)
+  Only the followed stations' cities are fetched on this page.
+- 捷運: header `+` and Android FAB 新增捷運車站 open `/metro-picker`.
+  Section "捷運車站" (footer: crowding legend + 到站資訊更新 time): per
+  station a `Row` header (title station, subtitle line names with line-colour dots)
   followed by one `Row` per train: title `往 X`, detail countdown, leading
   line-colour dot, footer `CrowdBar` (accessibility summary); actions 移除車站.
   Not configured → `Notice` 捷運即時到站資訊暫未啟用。你仍可管理常用車站。
+  Live arrivals and crowding are fetched only when at least one station is followed.
 - `/youbike-picker` (modal): Header 完成. Segmented 搜尋站點 / 附近九站;
   search mode: segmented 城市 + `Stack.SearchBar` (搜尋站名或行政區); result
   `Row`s (title, area subtitle, `MetricPills`, trailing 加入 / 已加入 via
@@ -365,7 +378,7 @@ remote data.
   (existing `StationMap`) + numbered result rows with distance.
 - `/metro-picker` (modal): Header 完成. Segmented line picker (BL/BR/R/G/O/Y…
   as today) + `Stack.SearchBar`; station `Row`s with checkmark when added;
-  tap toggles add (removal stays on the main screen).
+  tap toggles add (removal stays on the 捷運 subpage).
 - `/youbike-rename?city&sna` (modal): `TextFieldRow` 暱稱, Header 取消/儲存.
 
 ### 美食 (Food)

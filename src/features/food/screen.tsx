@@ -92,6 +92,15 @@ export default function FoodScreen({ switcher }: { switcher?: HeaderItem }) {
 
   const header: HeaderItem[] = [
     ...(switcher ? [switcher] : []),
+    ...(MAP_AVAILABLE
+      ? [{
+          kind: 'icon' as const,
+          key: 'full-map',
+          label: '顯示完整美食地圖',
+          icon: icons.map,
+          onPress: () => router.push({ pathname: '/food-map' }),
+        }]
+      : []),
     {
       kind: 'icon',
       key: 'random',
