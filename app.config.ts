@@ -49,6 +49,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     bundleIdentifier: APP_ID,
     appleTeamId: process.env.IOS_TEAM_ID || undefined,
     buildNumber,
+    icon: './assets/icons/apple.icon',
     // The shipped app supports iPad (TARGETED_DEVICE_FAMILY 1,2). App Store
     // Connect rejects an update that drops a device family, so keep it.
     supportsTablet: true,
@@ -83,7 +84,16 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     'expo-sqlite',
     ['expo-notifications', { defaultChannel: 'announcements', mode: iosPushEnvironment, enableBackgroundRemoteNotifications: false }],
     // SDK 57 opts into scenes so builds made with Xcode 27 launch on iOS 27.
-    ['expo-build-properties', { ios: { enableSceneSupport: true } }],
+    [
+      'expo-build-properties',
+      {
+        android: {
+          compileSdkVersion: 36,
+          targetSdkVersion: 36,
+        },
+        ios: { enableSceneSupport: true },
+      },
+    ],
     ...(widgets
       ? [
           [

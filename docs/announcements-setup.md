@@ -12,6 +12,9 @@ instances. GitHub Actions retains manual **Run workflow** as an operator fallbac
 neither path has a five-minute cron trigger. Source changes alone do not deploy
 the endpoint or disable previously deployed schedules.
 
+The button-only backend and website were deployed on 2026-10-12; see the
+[current deployment verification](announcements-deployment-status.md).
+
 ## Projects
 
 | Project | Source | Purpose |
