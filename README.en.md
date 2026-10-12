@@ -4,7 +4,7 @@
 
 CK APP was created in 2024 by CK students Kimi and Diego to help students manage schedules and tasks, check transport, and find nearby food.
 
-The app now uses **React Native, TypeScript, and Expo SDK 57**. Android interactive controls use Material 3 / Jetpack Compose; iOS uses SwiftUI controls and native navigation. Screen logic and layout are shared through React Native. The current package version is **4.0.0**; `app.config.ts` resolves the app version and build number.
+The app now uses **React Native, TypeScript, and Expo SDK 57**. Android interactive controls use Material 3 / Jetpack Compose; iOS uses SwiftUI controls and native navigation. Screen logic and layout are shared through React Native. The current package version is **4.0.1**; `app.config.ts` resolves the app version and build number.
 
 The interface follows the school bell: the emblem's inverted triangle only ever points at "now", and the full CK navy is reserved for the 現在 card at the top of Today. On iOS the tabs use the system large title with one line under it (the date, class or week), and Food's 熱食部 / 附近 switch sits in the navigation bar. See the [design spec](docs/design/native-ui.md) for each screen's layout and the component mapping.
 

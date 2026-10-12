@@ -4,7 +4,7 @@
 
 CK APP 是建中第 77 屆學生彭可翰和楊晨諺於 2024 年開發的校園應用程式，協助學生查看課表、安排待辦、查詢交通與探索附近美食。
 
-目前程式已改為 **React Native + TypeScript + Expo SDK 57**。Android 互動控制項使用 Material 3 / Jetpack Compose，iOS 使用 SwiftUI 控制項與原生導覽；跨平台畫面邏輯仍共用 React Native。`package.json` 的版本目前是 **4.0.0**，正式版本與建置編號由 `app.config.ts` 決定。
+目前程式已改為 **React Native + TypeScript + Expo SDK 57**。Android 互動控制項使用 Material 3 / Jetpack Compose，iOS 使用 SwiftUI 控制項與原生導覽；跨平台畫面邏輯仍共用 React Native。`package.json` 的版本目前是 **4.0.1**，正式版本與建置編號由 `app.config.ts` 決定。
 
 介面跟著上課鐘聲設計：校徽的倒三角只用來指出「現在」，滿版的建中藍只給「今天」最上方的「現在」卡片。iOS 分頁使用系統大標題，標題下方一行顯示日期、班級或週次；美食的熱食部／附近切換放在導覽列。各畫面的版面與元件對照見 [設計規格](docs/design/native-ui.md)。
 
