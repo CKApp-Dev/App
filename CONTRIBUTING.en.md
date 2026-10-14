@@ -85,4 +85,4 @@ Keep signing credentials in GitHub Secrets and local API configuration in `.env.
 
 ## Contact
 
-ckappofficial@gmail.com｜[Instagram](https://www.instagram.com/ckappofficial/)｜[website](https://ckapp-tw.web.app/)
+ckappofficial@gmail.com｜[Instagram](https://www.instagram.com/ckappofficial/)

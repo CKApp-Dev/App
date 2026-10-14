@@ -185,4 +185,4 @@ iOS 發佈另需 `BUILD_WIDGET_PROVISION_PROFILE_BASE64`，內容為 `org.capaci
 
 ## 貢獻與聯絡
 
-請先閱讀 [貢獻指南](CONTRIBUTING.md)。官方 Gmail：ckappofficial@gmail.com；[Instagram](https://www.instagram.com/ckappofficial/)；[官方網站](https://ckapp-tw.web.app/)。
+請先閱讀 [貢獻指南](CONTRIBUTING.md)。官方 Gmail：ckappofficial@gmail.com；[Instagram](https://www.instagram.com/ckappofficial/)。

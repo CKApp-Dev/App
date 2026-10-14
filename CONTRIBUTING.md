@@ -85,4 +85,4 @@ yarn lint
 
 ## 聯絡
 
-ckappofficial@gmail.com｜[Instagram](https://www.instagram.com/ckappofficial/)｜[官方網站](https://ckapp-tw.web.app/)
+ckappofficial@gmail.com｜[Instagram](https://www.instagram.com/ckappofficial/)

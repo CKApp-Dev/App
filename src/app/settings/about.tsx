@@ -15,6 +15,12 @@ const CONTACTS: readonly {
   open: () => Promise<void>;
 }[] = [
   {
+    title: "CK APP 官方網站",
+    subtitle: "app.cksc.tw",
+    icon: icons.web,
+    open: () => openWebsite("https://app.cksc.tw"),
+  },
+  {
     title: "CK APP 電子郵件",
     subtitle: "ckappofficial@gmail.com",
     icon: icons.mail,
@@ -43,12 +49,6 @@ const CONTACTS: readonly {
     subtitle: "@cksc.81st",
     icon: icons.camera,
     open: () => openWebsite("https://www.instagram.com/cksc.81st/"),
-  },
-  {
-    title: "官方網站",
-    subtitle: "ckapp-tw.web.app",
-    icon: icons.web,
-    open: () => openWebsite("https://ckapp-tw.web.app/"),
   },
 ];
 
@@ -95,6 +95,7 @@ export default function AboutScreen() {
         <TextBlock text="CK 77 Kimi Yang (Creator)" selectable />
         <TextBlock text="CK 77 Nathan Lee (Maintainer)" selectable />
         <TextBlock text="CK 79 Chris Sun (Maintainer)" selectable />
+        <TextBlock text="CK 79 Jim Tang (Maintainer)" selectable />
         <TextBlock text="CK 80 Dong Chen (Maintainer)" selectable />
       </Section>
     </ListScreen>

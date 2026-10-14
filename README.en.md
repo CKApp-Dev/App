@@ -185,4 +185,4 @@ First-time requests without connectivity or a saved cache show an error/empty st
 
 ## Contributing and contact
 
-Read the [Contributing Guide](CONTRIBUTING.en.md). Official email: ckappofficial@gmail.com; [Instagram](https://www.instagram.com/ckappofficial/); [website](https://ckapp-tw.web.app/).
+Read the [Contributing Guide](CONTRIBUTING.en.md). Official email: ckappofficial@gmail.com; [Instagram](https://www.instagram.com/ckappofficial/).
